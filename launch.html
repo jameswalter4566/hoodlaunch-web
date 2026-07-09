@@ -1,30 +1,43 @@
 <!DOCTYPE html>
-<html class="dark">
+<html>
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Launch a token — Tradeonbags</title>
+<title>Launch a coin — Tradeonbags</title>
 <link rel="icon" href="/logo.png" type="image/png"/>
-<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" rel="stylesheet"/>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/styles.css"/>
 </head>
-<body class="hl-page">
+<body>
 
-<header class="hl-topbar">
-  <a class="hl-brand" href="/">
-    <img src="/logo.png" alt="Tradeonbags"/>
-    <span class="hl-brand-text">Tradeonbags<small>LAUNCH. TRADE. EARN.</small></span>
-  </a>
-  <nav class="hl-topnav">
-    <a href="/">Discover</a>
-    <a href="/launch" class="hl-active">Launch</a>
+<aside class="sb">
+  <div class="sb-top">
+    <a class="sb-brand" href="/"><img src="/logo.png" alt=""/><span>Tradeonbags</span></a>
+    <button class="sb-toggle" id="sb-toggle" title="Toggle sidebar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg>
+    </button>
+  </div>
+  <nav class="sb-nav">
+    <a href="/">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="/advanced">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>
+      <span>Advanced</span>
+    </a>
+    <a href="/launch" class="active">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c4 3 6 7 6 11l-3 3H9l-3-3c0-4 2-8 6-11z"/><circle cx="12" cy="9" r="2"/><path d="M8 17l-2 5 4-2M16 17l2 5-4-2"/></svg>
+      <span>Launch</span>
+    </a>
   </nav>
-  <div class="hl-topbar-right"></div>
-</header>
+  <a class="sb-create" href="/launch"><span>Create coin</span></a>
+</aside>
 
+<div class="main">
 <main class="hl-main">
-  <section class="hl-card hl-card-page">
-    <div class="hl-head"><h2 class="hl-title">Launch a token</h2><span class="hl-pill">LIVE</span></div>
+  <section class="hl-card">
+    <div class="hl-head"><h2 class="hl-title">Launch a coin</h2><span class="hl-pill">LIVE</span></div>
     <p class="hl-sub">Deploy on Robinhood Chain — pay straight from your Solana wallet</p>
 
     <label class="hl-label">Select DEX <span class="hl-req">*</span></label>
@@ -58,19 +71,19 @@
 
     <div class="hl-grid2">
       <div>
-        <label class="hl-label">Token Name <span class="hl-req">*</span></label>
+        <label class="hl-label">Coin Name <span class="hl-req">*</span></label>
         <input class="hl-input" id="hl-name" maxlength="60" placeholder="Plasma Wizard"/>
         <div class="hl-counter" id="hl-name-count">0/60</div>
       </div>
       <div>
-        <label class="hl-label">Symbol <span class="hl-req">*</span></label>
+        <label class="hl-label">Ticker <span class="hl-req">*</span></label>
         <input class="hl-input" id="hl-symbol" maxlength="20" placeholder="PLAS"/>
         <div class="hl-counter" id="hl-symbol-count">0/20</div>
       </div>
     </div>
 
     <label class="hl-label">Description</label>
-    <textarea class="hl-textarea" id="hl-desc" maxlength="256" placeholder="Describe your token..."></textarea>
+    <textarea class="hl-textarea" id="hl-desc" maxlength="256" placeholder="Describe your coin..."></textarea>
     <div class="hl-counter" id="hl-desc-count">0/256</div>
 
     <label class="hl-label">Social Links</label>
@@ -101,7 +114,7 @@
     <div class="hl-sidebox">
       <h3>Required Fields</h3>
       <ul>
-        <li>Token name &amp; symbol</li>
+        <li>Coin name &amp; ticker</li>
         <li>Logo image (square, min 250×250)</li>
         <li>Creator fee wallet (EVM)</li>
       </ul>
@@ -114,18 +127,18 @@
     <div class="hl-sidebox hl-sidebox-gold">
       <h3>How it works</h3>
       <ol>
-        <li>Fill in your token details</li>
+        <li>Fill in your coin details</li>
         <li>Connect Phantom &amp; sign one SOL transaction</li>
         <li>Relay executes the launch on Robinhood Chain (~2s)</li>
-        <li>Token trades instantly on Uniswap V3 — LP locked forever</li>
+        <li>Coin trades instantly on Uniswap V3 — LP locked forever</li>
         <li>Claim your creator fees as they accrue</li>
       </ol>
     </div>
   </aside>
 </main>
+</div>
 
-<footer class="hl-footer">© 2026 Tradeonbags · Robinhood Chain · Powered by Relay</footer>
-
+<script src="/shell.js" defer></script>
 <script src="/launch.js" defer></script>
 </body>
 </html>

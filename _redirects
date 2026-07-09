@@ -1,2 +1,3 @@
 /launch    /launch.html    200
-/discover  /               301
+/advanced  /advanced.html  200
+/discover  /advanced       301
