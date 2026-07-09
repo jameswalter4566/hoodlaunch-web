@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Launch a token — Tradeonbags</title>
+<link rel="icon" href="/logo.png" type="image/png"/>
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/styles.css"/>
+</head>
+<body class="hl-page">
+
+<header class="hl-topbar">
+  <a class="hl-brand" href="/">
+    <img src="/logo.png" alt="Tradeonbags"/>
+    <span class="hl-brand-text">Tradeonbags<small>LAUNCH. TRADE. EARN.</small></span>
+  </a>
+  <nav class="hl-topnav">
+    <a href="/">Discover</a>
+    <a href="/launch" class="hl-active">Launch</a>
+  </nav>
+  <div class="hl-topbar-right"></div>
+</header>
+
+<main class="hl-main">
+  <section class="hl-card hl-card-page">
+    <div class="hl-head"><h2 class="hl-title">Launch a token</h2><span class="hl-pill">LIVE</span></div>
+    <p class="hl-sub">Deploy on Robinhood Chain — pay straight from your Solana wallet</p>
+
+    <label class="hl-label">Select DEX <span class="hl-req">*</span></label>
+    <div class="hl-chiprow"><span class="hl-chip">Uniswap <span class="hl-check">✓</span></span></div>
+
+    <label class="hl-label">Select Pair Token <span class="hl-req">*</span></label>
+    <div class="hl-chiprow"><span class="hl-chip">WETH <span class="hl-check">✓</span></span></div>
+
+    <div class="hl-config">
+      <div class="hl-config-title">Configuration details</div>
+      <div class="hl-config-row"><span>DEX:</span><b>Uniswap V3</b></div>
+      <div class="hl-config-row"><span>Pair Token:</span><b>WETH</b></div>
+      <div class="hl-config-row"><span>Total Supply:</span><b>1B</b></div>
+      <div class="hl-config-row"><span>Starting Market Cap:</span><b>~1.3 ETH</b></div>
+      <div class="hl-config-row"><span>Liquidity:</span><b>Locked forever</b></div>
+      <div class="hl-config-row"><span>Creator Fees:</span><b>80% of 1% pool tier</b></div>
+    </div>
+
+    <label class="hl-label">Logo Image <span class="hl-req">*</span></label>
+    <div class="hl-uploadrow">
+      <div class="hl-logo-box" id="hl-logo-box"><span>🖼️</span><span>Preview</span></div>
+      <div class="hl-upload-side">
+        <input class="hl-input" id="hl-image" placeholder="https://... paste image URL"/>
+        <ul class="hl-hints">
+          <li>PNG, JPEG, WebP, or GIF</li>
+          <li>Square (1:1 ratio) recommended</li>
+          <li>Hosted URL for now — uploads coming soon</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hl-grid2">
+      <div>
+        <label class="hl-label">Token Name <span class="hl-req">*</span></label>
+        <input class="hl-input" id="hl-name" maxlength="60" placeholder="Plasma Wizard"/>
+        <div class="hl-counter" id="hl-name-count">0/60</div>
+      </div>
+      <div>
+        <label class="hl-label">Symbol <span class="hl-req">*</span></label>
+        <input class="hl-input" id="hl-symbol" maxlength="20" placeholder="PLAS"/>
+        <div class="hl-counter" id="hl-symbol-count">0/20</div>
+      </div>
+    </div>
+
+    <label class="hl-label">Description</label>
+    <textarea class="hl-textarea" id="hl-desc" maxlength="256" placeholder="Describe your token..."></textarea>
+    <div class="hl-counter" id="hl-desc-count">0/256</div>
+
+    <label class="hl-label">Social Links</label>
+    <div class="hl-grid2">
+      <div><div class="hl-social-label">Twitter / X</div><input class="hl-input" id="hl-twitter" placeholder="@username or x.com/username"/></div>
+      <div><div class="hl-social-label">Telegram</div><input class="hl-input" id="hl-telegram" placeholder="@username or t.me/username"/></div>
+      <div><div class="hl-social-label">Website</div><input class="hl-input" id="hl-website" placeholder="example.com"/></div>
+    </div>
+
+    <div class="hl-grid2">
+      <div>
+        <label class="hl-label">Creator Fee Wallet (EVM) <span class="hl-req">*</span></label>
+        <input class="hl-input" id="hl-creator" placeholder="0x... receives trading fees"/>
+      </div>
+      <div>
+        <label class="hl-label">Initial Buy (ETH)</label>
+        <input class="hl-input" id="hl-initialbuy" type="number" min="0" step="0.001" placeholder="0.0"/>
+      </div>
+    </div>
+    <div class="hl-fieldnote">Initial buy is funded from your SOL automatically. Leave empty for none.</div>
+
+    <div class="hl-fee">LP locked forever · fees claimable anytime · Est. bridge time: <b>~2s</b></div>
+    <button class="hl-cta" id="hl-cta">Connect Phantom to Launch</button>
+    <div class="hl-status" id="hl-status"></div>
+  </section>
+
+  <aside class="hl-side">
+    <div class="hl-sidebox">
+      <h3>Required Fields</h3>
+      <ul>
+        <li>Token name &amp; symbol</li>
+        <li>Logo image (square, min 250×250)</li>
+        <li>Creator fee wallet (EVM)</li>
+      </ul>
+      <h4>Optional</h4>
+      <ul>
+        <li>Description &amp; social links</li>
+        <li>Initial buy amount</li>
+      </ul>
+    </div>
+    <div class="hl-sidebox hl-sidebox-gold">
+      <h3>How it works</h3>
+      <ol>
+        <li>Fill in your token details</li>
+        <li>Connect Phantom &amp; sign one SOL transaction</li>
+        <li>Relay executes the launch on Robinhood Chain (~2s)</li>
+        <li>Token trades instantly on Uniswap V3 — LP locked forever</li>
+        <li>Claim your creator fees as they accrue</li>
+      </ol>
+    </div>
+  </aside>
+</main>
+
+<footer class="hl-footer">© 2026 Tradeonbags · Robinhood Chain · Powered by Relay</footer>
+
+<script src="/launch.js" defer></script>
+</body>
+</html>
