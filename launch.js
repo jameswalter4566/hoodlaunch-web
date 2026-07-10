@@ -5,6 +5,8 @@
   const EXPLORER = 'https://robinhoodchain.blockscout.com';
 
   let pubkey = null;
+  let evmCreator = null;
+  let imageUrl = '';
   let web3Ready = null;
 
   function loadWeb3() {
@@ -42,10 +44,47 @@
     });
   });
 
-  document.getElementById('hl-image').addEventListener('change', function () {
-    const url = this.value.trim();
-    const box = document.getElementById('hl-logo-box');
-    if (url) box.innerHTML = '<img src="' + url.replace(/"/g, '') + '" alt="logo"/>';
+  document.getElementById('hl-logo-box').addEventListener('click', function () {
+    document.getElementById('hl-file').click();
+  });
+
+  document.getElementById('hl-file').addEventListener('change', async function () {
+    const file = this.files[0];
+    if (!file) return;
+    if (file.size > 4_500_000) { setStatus('Image too large — max 4.5MB', 'hl-err'); return; }
+    try {
+      setStatus('Uploading image…');
+      let payload;
+      if (file.type === 'image/gif') {
+        const b64 = await new Promise(function (resolve, reject) {
+          const r = new FileReader();
+          r.onload = function () { resolve(String(r.result).split(',')[1]); };
+          r.onerror = reject;
+          r.readAsDataURL(file);
+        });
+        payload = { data: b64, mime: 'image/gif' };
+      } else {
+        const bmp = await createImageBitmap(file);
+        const c = document.createElement('canvas');
+        c.width = 250;
+        c.height = 250;
+        const s = Math.min(bmp.width, bmp.height);
+        c.getContext('2d').drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, 250, 250);
+        payload = { data: c.toDataURL('image/webp', 0.9).split(',')[1], mime: 'image/webp' };
+      }
+      const res = await fetch(API + '/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error || 'Upload failed');
+      imageUrl = out.url;
+      document.getElementById('hl-logo-box').innerHTML = '<img src="' + imageUrl + '" alt="logo"/>';
+      setStatus('');
+    } catch (e) {
+      setStatus(e.message || String(e), 'hl-err');
+    }
   });
 
   document.getElementById('hl-cta').addEventListener('click', onCta);
@@ -58,8 +97,14 @@
         if (!provider) { setStatus('Phantom wallet not found — install it at phantom.app', 'hl-err'); return; }
         const res = await provider.connect();
         pubkey = res.publicKey.toString();
-        cta.textContent = 'Launch Token';
-        setStatus('Connected: ' + pubkey.slice(0, 4) + '…' + pubkey.slice(-4), 'hl-ok');
+        // Phantom is multichain: grab its Ethereum address as the default fee wallet
+        try {
+          const accounts = await window.phantom.ethereum.request({ method: 'eth_requestAccounts' });
+          evmCreator = accounts[0];
+        } catch (e) {}
+        cta.textContent = 'Launch Coin';
+        setStatus('Connected: ' + pubkey.slice(0, 4) + '…' + pubkey.slice(-4) +
+          (evmCreator ? ' · fees → ' + evmCreator.slice(0, 6) + '…' + evmCreator.slice(-4) : ''), 'hl-ok');
         return;
       }
       cta.disabled = true;
@@ -74,10 +119,24 @@
   async function launch() {
     const name = document.getElementById('hl-name').value.trim();
     const symbol = document.getElementById('hl-symbol').value.trim();
-    const creator = document.getElementById('hl-creator').value.trim();
-    if (!name || !symbol) throw new Error('Token name and symbol are required');
-    if (!/^0x[0-9a-fA-F]{40}$/.test(creator)) throw new Error('Creator fee wallet must be a valid EVM address (0x...)');
-    const initialBuyEth = parseFloat(document.getElementById('hl-initialbuy').value) || 0;
+    if (!name || !symbol) throw new Error('Coin name and ticker are required');
+    if (!imageUrl) throw new Error('Upload a logo image first');
+    const creator = document.getElementById('hl-creator').value.trim() || evmCreator;
+    if (!/^0x[0-9a-fA-F]{40}$/.test(creator || '')) {
+      throw new Error('No fee wallet found — Phantom did not expose an Ethereum address. Set one under Advanced settings.');
+    }
+
+    const initialBuySol = parseFloat(document.getElementById('hl-initialbuy').value) || 0;
+    let initialBuyEth = 0;
+    if (initialBuySol > 0) {
+      setStatus('Converting SOL → ETH…');
+      const prices = await Promise.all(['ETH-USD', 'SOL-USD'].map(function (pair) {
+        return fetch('https://api.coinbase.com/v2/prices/' + pair + '/spot')
+          .then(function (r) { return r.json(); })
+          .then(function (p) { return Number(p.data.amount); });
+      }));
+      initialBuyEth = (initialBuySol * prices[1]) / prices[0];
+    }
 
     setStatus('Getting launch quote…');
     const res = await fetch(API + '/api/launch', {
@@ -87,7 +146,7 @@
         name: name,
         symbol: symbol,
         description: document.getElementById('hl-desc').value.trim(),
-        imageUrl: document.getElementById('hl-image').value.trim(),
+        imageUrl: imageUrl,
         socials: {
           twitter: document.getElementById('hl-twitter').value.trim(),
           telegram: document.getElementById('hl-telegram').value.trim(),
@@ -95,7 +154,7 @@
         },
         creator: creator,
         solanaAddress: pubkey,
-        initialBuyEth: initialBuyEth || undefined,
+        initialBuyEth: initialBuyEth > 0 ? initialBuyEth.toFixed(8) : undefined,
       }),
     });
     const out = await res.json();
