@@ -37,7 +37,10 @@
   function row(t) {
     const href = t.isOurs ? '/coin/' + t.token : 'https://dexscreener.com/robinhood/' + t.pool;
     const target = t.isOurs ? '' : ' target="_blank" rel="noopener"';
-    const img = t.imageUrl ? '<img src="' + esc(t.imageUrl) + '"/>' : esc((t.symbol || '?')[0].toUpperCase());
+    const letter = esc((t.symbol || '?')[0].toUpperCase());
+    const img = t.imageUrl
+      ? '<span>' + letter + '</span><img src="' + esc(t.imageUrl) + '" loading="lazy" onerror="this.remove()"/>'
+      : '<span>' + letter + '</span>';
     const total = t.buys24h + t.sells24h;
     const buyPct = total ? Math.round((t.buys24h / total) * 100) : 50;
     const padCls = t.launchpad === 'bullish.run' ? 'ours' : t.launchpad === 'Noxa.Fun' ? 'noxa' : '';
@@ -102,6 +105,17 @@
     data = await res.json();
     render();
   }
+
+  // live stream: server pushes a fresh payload the moment the chain changes
+  function connect() {
+    const sock = new WebSocket(API.replace(/^http/, 'ws') + '/ws');
+    sock.onmessage = function (e) {
+      data = JSON.parse(e.data);
+      render();
+    };
+    sock.onclose = function () { setTimeout(connect, 3000); };
+  }
+  connect();
 
   // ---------- filters modal ----------
 
@@ -172,5 +186,5 @@
   });
 
   refresh();
-  setInterval(refresh, 5000);
+  setInterval(render, 5000); // keep ages ticking between pushes
 })();
