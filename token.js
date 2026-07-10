@@ -129,7 +129,7 @@
     pct(t.priceChange1h, $('tk-chip-1h'));
     pct(t.priceChange24h, $('tk-chip-1d'));
     $('tk-chip-grad').textContent = Math.round(t.graduationPct) + '%';
-    document.title = usd(t.marketCapEth) + ' MC | ' + t.symbol + ' | Tradeonbags';
+    document.title = usd(t.marketCapEth) + ' MC | ' + t.symbol + ' | bullish.run';
   }
 
   function renderSwaps() {
