@@ -1,22 +1,23 @@
 /* Tradeonbags — pump-style layout, Robinhood neon green/yellow theme */
 
 :root {
-  --bg: #0d0e12;
-  --bg2: #131418;
-  --card: #17181d;
-  --card2: #1c1d23;
-  --line: #23242b;
-  --line2: #2c2d35;
-  --txt: #f5f7f6;
-  --txt2: #9aa0a6;
-  --txt3: #62666d;
-  --green: #00e33d;
-  --green-deep: #00c805;
-  --green-soft: rgba(0, 227, 61, 0.14);
+  --bg: #060510;
+  --bg2: #0c0b16;
+  --card: #12111a;
+  --card2: #1a1926;
+  --line: #1f1e2c;
+  --line2: #2a2938;
+  --txt: #f7f7f7;
+  --txt2: #9899a3;
+  --txt3: #62636e;
+  --green: #21c95e;
+  --green-deep: #16a34a;
+  --green-soft: rgba(33, 201, 94, 0.2);
   --yellow: #ffd60a;
   --yellow-soft: rgba(255, 214, 10, 0.12);
-  --grad: linear-gradient(180deg, #d9ff4a 0%, #00d13f 100%);
-  --red: #ff5470;
+  --grad: linear-gradient(180deg, #34e075 0%, #16a34a 100%);
+  --red: #f6465d;
+  --red-soft: rgba(246, 70, 93, 0.2);
 }
 
 * { box-sizing: border-box; }
@@ -26,7 +27,7 @@ body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--txt);
-  font-family: 'General Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   display: flex;
 }
 
@@ -414,3 +415,163 @@ body.sb-min .sb-create::after { content: '+'; font-size: 20px; font-weight: 700;
   .hl-side { position: static; flex-basis: auto; width: 100%; }
   .sb { position: fixed; z-index: 50; }
 }
+
+/* ---------- token page (terminal layout) ---------- */
+
+.tk-wrap { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.tk-topbar { display: flex; align-items: center; justify-content: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.tk-search { position: relative; width: 480px; max-width: 60vw; }
+.tk-search input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--txt);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 9px 12px 9px 32px;
+  outline: none;
+}
+.tk-search input:focus { border-color: var(--line2); }
+.tk-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--txt3); }
+
+.tk-layout { display: flex; flex: 1; min-height: 0; }
+
+/* left token list */
+.tk-list { flex: 0 0 290px; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.tk-list-tabs { display: flex; gap: 4px; padding: 10px 10px 8px; }
+.tk-list-tab {
+  border: none; background: none; font-family: inherit; cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--txt3);
+  padding: 5px 10px; border-radius: 8px;
+}
+.tk-list-tab.on { color: var(--txt); background: var(--card); }
+.tk-list-body { flex: 1; overflow-y: auto; padding: 0 6px 12px; }
+.tk-list-body::-webkit-scrollbar { width: 4px; }
+.tk-list-body::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 2px; }
+.tk-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px; border-radius: 8px; text-decoration: none;
+}
+.tk-row:hover, .tk-row.on { background: var(--card); }
+.tk-row-img { width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: var(--card2); flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
+.tk-row-img img { width: 100%; height: 100%; object-fit: cover; }
+.tk-row-main { flex: 1; min-width: 0; }
+.tk-row-sym { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tk-row-price { font-size: 11.5px; color: var(--txt2); }
+.tk-row-right { text-align: right; }
+.tk-row-mc { font-size: 12.5px; font-weight: 700; }
+.tk-row-chg { font-size: 11px; font-weight: 600; }
+.tk-row-chg.up { color: var(--green); }
+.tk-row-chg.down { color: var(--red); }
+
+/* center */
+.tk-center { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.tk-head { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tk-head-id { display: flex; align-items: center; gap: 10px; }
+.tk-head-img { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: var(--card2); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.tk-head-img img { width: 100%; height: 100%; object-fit: cover; }
+.tk-head-sym { font-size: 15px; font-weight: 800; }
+.tk-head-name { font-size: 11.5px; color: var(--txt2); }
+.tk-head-ca { font-size: 11px; color: var(--txt3); cursor: pointer; }
+.tk-head-ca:hover { color: var(--txt); }
+.tk-stats { display: flex; gap: 22px; margin-left: auto; flex-wrap: wrap; }
+.tk-stat { text-align: right; }
+.tk-stat span { display: block; font-size: 11px; font-weight: 500; color: var(--txt2); }
+.tk-stat b { font-size: 14px; font-weight: 700; }
+.tk-stat b.big { font-size: 17px; }
+.tk-stat b.up { color: var(--green); }
+.tk-stat b.down { color: var(--red); }
+
+.tk-chartbar { display: flex; align-items: center; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+.tk-tf {
+  border: none; background: none; cursor: pointer; font-family: inherit;
+  font-size: 12px; font-weight: 600; color: var(--txt3);
+  padding: 4px 9px; border-radius: 7px;
+}
+.tk-tf.on { color: var(--txt); background: var(--card); }
+.tk-chart { flex: 1; min-height: 220px; position: relative; }
+.tk-chart-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--txt3); font-size: 13px; }
+
+.tk-tabs { display: flex; gap: 2px; padding: 8px 16px 0; border-top: 1px solid var(--line); }
+.tk-tab {
+  border: none; background: none; cursor: pointer; font-family: inherit;
+  font-size: 13px; font-weight: 700; color: var(--txt3);
+  padding: 7px 12px; border-radius: 8px 8px 0 0;
+}
+.tk-tab.on { color: var(--txt); }
+.tk-table-wrap { height: 200px; overflow-y: auto; padding: 0 16px 12px; }
+.tk-table-wrap::-webkit-scrollbar { width: 4px; }
+.tk-table-wrap::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 2px; }
+table.tk-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tk-table th { text-align: left; color: var(--txt3); font-weight: 500; font-size: 11px; padding: 7px 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); }
+.tk-table td { padding: 7px 8px; border-bottom: 1px solid var(--line); color: var(--txt2); }
+.tk-table td.side-buy { color: var(--green); font-weight: 700; }
+.tk-table td.side-sell { color: var(--red); font-weight: 700; }
+.tk-table td b { color: var(--txt); font-weight: 600; }
+.tk-table a { color: var(--txt3); text-decoration: none; }
+.tk-table a:hover { color: var(--txt); }
+
+/* right trade panel */
+.tk-trade { flex: 0 0 320px; border-left: 1px solid var(--line); overflow-y: auto; padding: 14px; }
+.tk-trade::-webkit-scrollbar { width: 4px; }
+.tk-trade::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 2px; }
+.tk-bs { display: flex; gap: 6px; }
+.tk-bs button {
+  flex: 1; height: 40px; border: none; border-radius: 8px; cursor: pointer;
+  font-family: inherit; font-size: 15px; font-weight: 700;
+  background: var(--card); color: var(--txt3);
+}
+.tk-bs button.buy.on { background: var(--green-soft); color: var(--green); }
+.tk-bs button.sell.on { background: var(--red-soft); color: var(--red); }
+.tk-amount {
+  margin-top: 10px; background: var(--card); border-radius: 10px; padding: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tk-amount input {
+  background: none; border: none; outline: none; color: var(--txt);
+  font-family: inherit; font-size: 26px; font-weight: 700; width: 60%;
+}
+.tk-amount input::placeholder { color: var(--txt3); }
+.tk-amount span { font-size: 12px; color: var(--txt3); }
+.tk-presets { display: flex; gap: 6px; margin-top: 8px; }
+.tk-presets button {
+  flex: 1; height: 32px; border: none; border-radius: 8px; cursor: pointer;
+  background: var(--card); color: var(--txt); font-family: inherit; font-size: 13px; font-weight: 600;
+}
+.tk-presets button:hover { background: var(--card2); }
+.tk-avail { margin-top: 8px; font-size: 12px; color: var(--txt3); }
+.tk-cta {
+  width: 100%; height: 42px; margin-top: 10px; border: none; border-radius: 8px; cursor: pointer;
+  font-family: inherit; font-size: 15px; font-weight: 700;
+  background: var(--green-soft); color: var(--green);
+}
+.tk-cta.sellmode { background: var(--red-soft); color: var(--red); }
+.tk-cta:hover { filter: brightness(1.15); }
+.tk-cta:disabled { opacity: 0.5; cursor: not-allowed; }
+.tk-status { margin-top: 10px; font-size: 12.5px; color: var(--txt2); min-height: 17px; text-align: center; }
+.tk-status.ok { color: var(--green); }
+.tk-status.err { color: var(--red); }
+.tk-status a { color: var(--yellow); }
+
+.tk-about { margin-top: 18px; background: var(--card); border-radius: 10px; padding: 14px; }
+.tk-about h3 { margin: 0 0 6px; font-size: 13.5px; font-weight: 800; }
+.tk-about p { margin: 0; font-size: 12px; color: var(--txt2); line-height: 1.6; }
+.tk-about .socials { margin-top: 8px; display: flex; gap: 10px; }
+.tk-about .socials a { color: var(--txt3); font-size: 12px; text-decoration: none; }
+.tk-about .socials a:hover { color: var(--txt); }
+
+.tk-tfchips { display: flex; gap: 6px; margin-top: 14px; }
+.tk-tfchip {
+  flex: 1; text-align: center; background: var(--card); border-radius: 8px; padding: 7px 0;
+}
+.tk-tfchip span { display: block; font-size: 10.5px; color: var(--txt3); }
+.tk-tfchip b { font-size: 12px; font-weight: 700; }
+.tk-tfchip b.up { color: var(--green); }
+.tk-tfchip b.down { color: var(--red); }
+
+.tk-flow { margin-top: 14px; }
+.tk-flow-row { display: flex; justify-content: space-between; font-size: 12.5px; margin-top: 10px; }
+.tk-flow-row b.g { color: var(--green); } .tk-flow-row b.r { color: var(--red); }
+.tk-bar { display: flex; height: 4px; border-radius: 2px; overflow: hidden; margin-top: 5px; background: var(--card2); }
+.tk-bar i.g { background: var(--green); } .tk-bar i.r { background: var(--red); }

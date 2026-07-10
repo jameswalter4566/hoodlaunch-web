@@ -52,7 +52,7 @@
       ? '<img src="' + esc(t.image_url) + '" alt=""/>'
       : '<span class="letter">' + esc((t.symbol || '?')[0].toUpperCase()) + '</span>';
     return (
-      '<a class="pcard" href="' + EXPLORER + '/token/' + t.address + '" target="_blank" rel="noopener">' +
+      '<a class="pcard" href="/coin/' + t.address + '">' +
         '<div class="pcard-img">' + img + '<div class="pcard-spark">' + spark(t) + '</div></div>' +
         '<div class="pcard-name">' + esc(t.name) + '</div>' +
         '<div class="pcard-tick">$' + esc(t.symbol) + '</div>' +

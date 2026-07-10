@@ -47,7 +47,7 @@
     if (t.socials && t.socials.website) socials.push('<a class="hl-soc" href="' + esc(t.socials.website) + '" target="_blank" rel="noopener">🌐</a>');
 
     return (
-      '<a class="hl-tcard" href="' + EXPLORER + '/token/' + t.address + '" target="_blank" rel="noopener">' +
+      '<a class="hl-tcard" href="/coin/' + t.address + '">' +
         '<div class="hl-tcard-left">' +
           '<div class="hl-avatar" style="--pct:' + Math.round(t.graduationPct) + '%">' + '<div class="hl-avatar-in">' + avatar + '</div></div>' +
           '<div class="hl-tcard-ca">' + shortCa + '</div>' +
