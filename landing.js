@@ -15,8 +15,44 @@
     });
   }
 
+  function setView(view) {
+    document.querySelectorAll('#ld-tabs button, .ld-chip').forEach(function (el) {
+      el.classList.toggle('on', el.dataset.view === view);
+    });
+    document.querySelectorAll('.ld-view').forEach(function (el) {
+      el.classList.toggle('on', el.dataset.view === view);
+    });
+  }
+  document.getElementById('ld-tabs').addEventListener('click', function (e) {
+    const b = e.target.closest('button');
+    if (b) setView(b.dataset.view);
+  });
+  document.querySelectorAll('.ld-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () { setView(chip.dataset.view); });
+  });
+
+  function pulseRow(t) {
+    const letter = esc((t.symbol || '?')[0].toUpperCase());
+    const img = t.imageUrl
+      ? '<span>' + letter + '</span><img src="' + esc(t.imageUrl) + '" loading="lazy" onerror="this.remove()"/>'
+      : '<span>' + letter + '</span>';
+    const chg = t.change24h;
+    return (
+      '<a class="ld-mkt" href="/coin/' + t.token + '">' +
+        '<div class="ld-mkt-img">' + img + '</div>' +
+        '<div class="ld-mkt-main"><b>' + esc(t.symbol) + '</b><span>' + usd(t.fdvUsd) + ' MC</span></div>' +
+        '<div class="ld-mkt-right"><b>' + usd(t.volume24hUsd) + '</b>' +
+          '<span class="' + (chg > 0 ? 'up' : chg < 0 ? 'down' : '') + '">' + (chg > 0 ? '+' : '') + chg.toFixed(0) + '%</span></div>' +
+      '</a>'
+    );
+  }
+
   async function boot() {
     const data = await fetch(API + '/api/pulse').then(function (r) { return r.json(); });
+
+    document.getElementById('ld-p-new').innerHTML = data.newPairs.slice(0, 5).map(pulseRow).join('');
+    document.getElementById('ld-p-stretch').innerHTML = data.finalStretch.slice(0, 5).map(pulseRow).join('');
+    document.getElementById('ld-p-migrated').innerHTML = data.migrated.slice(0, 5).map(pulseRow).join('');
     const all = [].concat(data.migrated, data.finalStretch, data.newPairs)
       .sort(function (a, b) { return b.volume24hUsd - a.volume24hUsd; });
     const top = all.slice(0, 7);

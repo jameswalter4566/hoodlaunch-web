@@ -822,3 +822,43 @@ body.ld { display: block; background: linear-gradient(180deg, #6db6ef 0%, #a8d6f
 .tk-list-mkt { padding: 10px 10px 0; }
 .tk-list-mkt .mkt-toggle { width: 100%; }
 .tk-list-mkt .mkt-toggle button { flex: 1; }
+
+/* landing frame views */
+.ld-tabs button {
+  border: none; background: none; cursor: pointer; font-family: inherit;
+  padding: 8px 20px; border-radius: 999px;
+  color: #fff; font-size: 14px; font-weight: 700;
+  text-shadow: 0 1px 8px rgba(10, 40, 80, 0.3);
+}
+.ld-tabs button.on { background: #fff; color: #0b2c50; text-shadow: none; }
+.ld-chip { cursor: pointer; }
+.ld-view { display: none; }
+.ld-view.on { display: flex; }
+
+.ld-pcol { flex: 1; min-width: 0; border-right: 1px solid var(--line); padding: 8px; }
+.ld-pcol:last-child { border-right: none; }
+.ld-pcol-head { font-size: 12.5px; font-weight: 800; color: var(--txt); padding: 6px 10px 8px; }
+
+.ld-lf { margin: 26px auto; width: 420px; max-width: 92%; background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.ld-lf-head { display: flex; align-items: center; gap: 8px; }
+.ld-lf-head b { font-size: 17px; font-weight: 800; color: var(--txt); }
+.ld-lf-pill { padding: 2px 9px; border-radius: 999px; background: var(--green-soft); color: var(--green); font-size: 10px; font-weight: 800; }
+.ld-lf-sub { margin-top: 5px; font-size: 11.5px; color: var(--txt2); }
+.ld-lf-row { display: flex; gap: 12px; margin-top: 16px; }
+.ld-lf-upload {
+  flex: 0 0 74px; height: 74px; border: 1.5px dashed var(--line2); border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  color: var(--txt3); font-size: 11px; font-weight: 600;
+}
+.ld-lf-fields { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.ld-lf-input { background: var(--card); border: 1px solid var(--line2); border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--txt3); }
+.ld-lf-config { margin-top: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.ld-lf-config div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+.ld-lf-config span { color: var(--txt2); }
+.ld-lf-config b { color: var(--txt); font-weight: 700; }
+.ld-lf-cta {
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 16px; height: 40px; border-radius: 8px; text-decoration: none;
+  background: var(--green-soft); color: var(--green); font-size: 13.5px; font-weight: 800;
+}
+.ld-lf-cta:hover { filter: brightness(1.15); }
