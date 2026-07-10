@@ -85,7 +85,7 @@
       return !keyword || (t.symbol + ' ' + t.name + ' ' + t.address).toLowerCase().includes(keyword);
     });
     $('tk-list-body').innerHTML = list.map(function (t) {
-      const img = t.image_url ? '<img src="' + esc(t.image_url) + '"/>' : esc((t.symbol || '?')[0].toUpperCase());
+      const img = tokenImg(t.image_url, t.address, t.symbol);
       const chg = t.priceChange24h;
       return (
         '<a class="tk-row' + (t.address === address ? ' on' : '') + '" href="/coin/' + t.address + '">' +
@@ -105,8 +105,14 @@
 
   // ---------- center ----------
 
+  function tokenImg(imageUrl, addr, symbol) {
+    const letter = esc((symbol || '?')[0].toUpperCase());
+    const src = imageUrl || 'https://metadata.mobula.io/assets/logos/evm_4663_' + addr + '.webp';
+    return '<span>' + letter + '</span><img src="' + esc(src) + '" loading="lazy" onerror="this.remove()"/>';
+  }
+
   function renderHead(t) {
-    $('tk-img').innerHTML = t.image_url ? '<img src="' + esc(t.image_url) + '"/>' : esc((t.symbol || '?')[0].toUpperCase());
+    $('tk-img').innerHTML = tokenImg(t.image_url, t.address, t.symbol);
     $('tk-sym').textContent = t.symbol;
     $('tk-name').textContent = t.name;
     $('tk-ca').textContent = t.address.slice(0, 6) + '…' + t.address.slice(-4) + ' ⧉';
@@ -361,12 +367,13 @@
       fetch(API + '/api/tokens/' + address + '/trades?limit=200').then(function (r) { return r.json(); }),
       fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot').then(function (r) { return r.json(); }).catch(function () { return null; }),
       fetch('https://api.coinbase.com/v2/prices/SOL-USD/spot').then(function (r) { return r.json(); }).catch(function () { return null; }),
+      fetch(API + '/api/tokens/' + address).then(function (r) { return r.ok ? r.json() : null; }),
     ]);
     board = results[0];
     trades = results[1];
     if (results[2]) ethUsd = Number(results[2].data.amount);
     if (results[3]) solUsd = Number(results[3].data.amount);
-    token = board.new.concat(board.graduating, board.graduated).find(function (t) { return t.address === address; });
+    token = results[4];
     renderList();
     if (token) renderHead(token);
     renderSwaps();

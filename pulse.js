@@ -34,9 +34,20 @@
     return '<span class="pl-chg ' + cls + '">' + label + ' ' + (v > 0 ? '+' : '') + v.toFixed(0) + '%</span>';
   }
 
+  function socialLinks(t) {
+    const s = t.socials || {};
+    const out = [];
+    const fix = function (u, base) {
+      u = String(u);
+      return u.startsWith('http') ? u : base + u.replace(/^@/, '');
+    };
+    if (s.twitter) out.push('<span class="pl-soc" data-url="' + esc(fix(s.twitter, 'https://x.com/')) + '">𝕏</span>');
+    if (s.telegram) out.push('<span class="pl-soc" data-url="' + esc(fix(s.telegram, 'https://t.me/')) + '">✈</span>');
+    if (s.website) out.push('<span class="pl-soc" data-url="' + esc(fix(s.website, 'https://')) + '">🌐</span>');
+    return out.join('');
+  }
+
   function row(t) {
-    const href = t.isOurs ? '/coin/' + t.token : 'https://dexscreener.com/robinhood/' + t.pool;
-    const target = t.isOurs ? '' : ' target="_blank" rel="noopener"';
     const letter = esc((t.symbol || '?')[0].toUpperCase());
     const img = t.imageUrl
       ? '<span>' + letter + '</span><img src="' + esc(t.imageUrl) + '" loading="lazy" onerror="this.remove()"/>'
@@ -45,12 +56,13 @@
     const buyPct = total ? Math.round((t.buys24h / total) * 100) : 50;
     const padCls = t.launchpad === 'bullish.run' ? 'ours' : t.launchpad === 'Noxa.Fun' ? 'noxa' : '';
     return (
-      '<a class="pl-row" href="' + href + '"' + target + '>' +
+      '<a class="pl-row" href="/coin/' + t.token + '">' +
         '<div class="pl-img">' + img + '</div>' +
         '<div class="pl-main">' +
           '<div class="pl-l1"><b>' + esc(t.symbol) + '</b><span class="pl-pairlbl">/' + t.pair + '</span>' +
             (t.feeTier ? '<span class="pl-fee">' + t.feeTier + '%</span>' : '') +
             '<button class="pl-copy" data-ca="' + t.token + '" title="Copy CA">⧉</button>' +
+            socialLinks(t) +
           '</div>' +
           '<div class="pl-l2"><span class="pl-age">' + fmtAge(t.createdAt) + '</span>' +
             '<span class="pl-pad ' + padCls + '">' + esc(t.launchpad) + '</span>' +
@@ -88,12 +100,13 @@
   }
 
   function render() {
+    const solana = localStorage.getItem('pl-market') === 'solana';
     BUCKETS.forEach(function (b) {
-      const list = data[b].filter(passes);
+      const list = solana ? [] : data[b].filter(passes);
       $('pl-count-' + b).textContent = list.length;
       $('pl-col-' + b).innerHTML = list.length
         ? list.map(row).join('')
-        : '<div class="pl-empty">🪧<br/>No Data</div>';
+        : '<div class="pl-empty">🪧<br/>' + (solana ? 'Solana markets — coming soon' : 'No Data') + '</div>';
     });
     const n = activeFilterCount();
     $('pl-filter-count').textContent = n ? '(' + n + ')' : '';
@@ -183,7 +196,28 @@
       btn.textContent = '✓';
       setTimeout(function () { btn.textContent = '⧉'; }, 900);
     }
+    const soc = e.target.closest && e.target.closest('.pl-soc');
+    if (soc) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.open(soc.dataset.url, '_blank', 'noopener');
+    }
   });
+
+  document.getElementById('mkt-toggle').addEventListener('click', function (e) {
+    const b = e.target.closest('button');
+    if (!b) return;
+    document.querySelectorAll('#mkt-toggle button').forEach(function (el) { el.classList.remove('on'); });
+    b.classList.add('on');
+    localStorage.setItem('pl-market', b.dataset.mkt);
+    render();
+  });
+  (function () {
+    const saved = localStorage.getItem('pl-market') || 'robinhood';
+    document.querySelectorAll('#mkt-toggle button').forEach(function (el) {
+      el.classList.toggle('on', el.dataset.mkt === saved);
+    });
+  })();
 
   refresh();
   setInterval(render, 5000); // keep ages ticking between pushes
