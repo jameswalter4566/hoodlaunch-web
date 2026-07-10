@@ -52,8 +52,8 @@ body.sb-min .sb { flex-basis: 64px; }
 
 .sb-top { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 14px; }
 .sb-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; min-width: 0; }
-.sb-brand img { width: 28px; height: 28px; border-radius: 7px; object-fit: contain; flex: 0 0 28px; }
-.sb-brand span { font-size: 15px; font-weight: 700; white-space: nowrap; }
+.sb-brand img { width: 44px; height: 44px; border-radius: 10px; object-fit: contain; flex: 0 0 44px; }
+.sb-brand span { font-size: 17px; font-weight: 800; white-space: nowrap; }
 body.sb-min .sb-brand span { display: none; }
 
 .sb-toggle {
@@ -710,3 +710,10 @@ table.tk-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .tk-head-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .tk-row-img { position: relative; }
 .tk-row-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* Launch nav item as a solid dark-green button */
+.sb-nav a.sb-launch { background: #14532d; color: #fff; font-weight: 700; }
+.sb-nav a.sb-launch svg { color: #fff; }
+.sb-nav a.sb-launch:hover { background: #1a6b3a; color: #fff; }
+.sb-nav a.sb-launch.active { background: #1a6b3a; color: #fff; }
+.sb-nav a.sb-launch.active svg { color: #fff; }
