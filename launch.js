@@ -1,7 +1,7 @@
 // Launch page: Phantom connect -> /api/launch quote -> sign Relay deposit -> track fill.
 (function () {
   const API = window.HOODLAUNCH_API || 'https://hoodlaunchbackend-production.up.railway.app';
-  const SOLANA_RPC = window.HOODLAUNCH_SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
+  const SOLANA_RPC = window.HOODLAUNCH_SOLANA_RPC || (API + '/api/solana-rpc');
   const EXPLORER = 'https://robinhoodchain.blockscout.com';
 
   let pubkey = null;
