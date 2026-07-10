@@ -3,29 +3,59 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>bullish.run — launch and trade Robinhood Chain coins</title>
-<meta name="description" content="bullish.run — launch and trade Robinhood Chain coins straight from your Solana wallet."/>
+<title>bullish.run — Trade and launch Robinhood tokens on Solana</title>
+<meta name="description" content="Every new Robinhood Chain coin, streamed live. Buy, sell and launch with one Phantom signature — paid in SOL."/>
 <meta property="og:title" content="bullish.run"/>
-<meta property="og:description" content="Launch and trade Robinhood Chain coins straight from your Solana wallet."/>
+<meta property="og:description" content="Trade and launch Robinhood tokens on Solana."/>
 <meta property="og:image" content="/logo.png"/>
 <link rel="icon" href="/logo.png" type="image/png"/>
-<style>
-  body { margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center;
-         background: #060510; color: #62636e; font: 600 14px Manrope, system-ui, sans-serif; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/styles.css"/>
+<script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
 </head>
-<body>
-loading bullish.run…
-<script>
-// Home = the most recently launched coin's page.
-fetch('https://hoodlaunchbackend-production.up.railway.app/api/board')
-  .then(function (r) { return r.json(); })
-  .then(function (b) {
-    var all = b.new.concat(b.graduating, b.graduated);
-    if (!all.length) { location.replace('/launch'); return; }
-    all.sort(function (x, y) { return new Date(y.created_at) - new Date(x.created_at); });
-    location.replace('/coin/' + all[0].address);
-  });
-</script>
+<body class="ld">
+
+<video class="ld-sky" src="/sky.mp4" autoplay muted loop playsinline></video>
+
+<div class="ld-wrap">
+  <div class="ld-brand"><img src="/logo.png" alt=""/><span>bullish</span></div>
+
+  <div class="ld-badges">
+    <span class="ld-badge">⚡ Built on Robinhood Chain</span>
+    <span class="ld-badge alt">◎ Trade with SOL</span>
+  </div>
+
+  <h1 class="ld-h1">Trade and launch Robinhood<br/>tokens on Solana</h1>
+  <p class="ld-sub">Every new Robinhood Chain coin, streamed live — buy, sell and launch<br/>with one Phantom signature.</p>
+
+  <a class="ld-cta" href="/app">Start Trading</a>
+
+  <div class="ld-tabs">
+    <a href="/app" class="on">Markets</a>
+    <a href="/pulse">Pulse</a>
+    <a href="/launch">Launch</a>
+  </div>
+
+  <div class="ld-frame">
+    <div class="ld-frame-top">
+      <span class="ld-frame-brand"><img src="/logo.png" alt=""/>bullish</span>
+      <span class="ld-chip on">Markets</span>
+      <span class="ld-chip">Pulse</span>
+      <span class="ld-chip">Launch</span>
+      <span class="ld-frame-right"><span>PORTFOLIO</span><b>$12,480</b></span>
+    </div>
+    <div class="ld-frame-body">
+      <div class="ld-mkts" id="ld-mkts"></div>
+      <div class="ld-chart-wrap">
+        <div class="ld-chart-head" id="ld-chart-head">Loading live markets…</div>
+        <div class="ld-chart" id="ld-chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ld-foot">© 2026 bullish.run · Robinhood Chain · Powered by Relay</div>
+</div>
+
+<script src="/landing.js" defer></script>
 </body>
 </html>

@@ -1,5 +1,4 @@
 /launch    /launch.html    200
 /pulse     /pulse.html     200
-/advanced  /advanced.html  200
+/app       /app.html       200
 /coin/*    /token.html     200
-/discover  /advanced       301

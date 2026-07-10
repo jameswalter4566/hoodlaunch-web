@@ -81,9 +81,14 @@
   let board = { new: [], graduating: [], graduated: [] };
 
   function renderList() {
-    const list = board[bucket].filter(function (t) {
+    const solana = localStorage.getItem('pl-market') === 'solana';
+    const list = solana ? [] : board[bucket].filter(function (t) {
       return !keyword || (t.symbol + ' ' + t.name + ' ' + t.address).toLowerCase().includes(keyword);
     });
+    if (solana) {
+      $('tk-list-body').innerHTML = '<div class="tk-chart-empty" style="position:static;padding:40px 0">Solana markets — coming soon</div>';
+      return;
+    }
     $('tk-list-body').innerHTML = list.map(function (t) {
       const img = tokenImg(t.image_url, t.address, t.symbol);
       const chg = t.priceChange24h;
@@ -340,6 +345,21 @@
     const self = this;
     setTimeout(function () { self.textContent = address.slice(0, 6) + '…' + address.slice(-4) + ' ⧉'; }, 900);
   });
+  $('mkt-toggle').addEventListener('click', function (e) {
+    const b = e.target.closest('button');
+    if (!b) return;
+    document.querySelectorAll('#mkt-toggle button').forEach(function (el) { el.classList.remove('on'); });
+    b.classList.add('on');
+    localStorage.setItem('pl-market', b.dataset.mkt);
+    renderList();
+  });
+  (function () {
+    const saved = localStorage.getItem('pl-market') || 'robinhood';
+    document.querySelectorAll('#mkt-toggle button').forEach(function (el) {
+      el.classList.toggle('on', el.dataset.mkt === saved);
+    });
+  })();
+
   $('tk-list-tabs').addEventListener('click', function (e) {
     const b = e.target.closest('.tk-list-tab');
     if (!b) return;
