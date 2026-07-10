@@ -650,6 +650,7 @@ table.tk-table { width: 100%; border-collapse: collapse; font-size: 12px; }
   display: flex; align-items: flex-start; justify-content: center;
   padding: 48px 16px; overflow-y: auto;
 }
+.pl-modal[hidden] { display: none; }
 .pl-modal-card {
   width: 560px; max-width: 100%;
   background: var(--bg2); border: 1px solid var(--line); border-radius: 14px;
