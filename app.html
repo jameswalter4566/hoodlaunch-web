@@ -14,14 +14,16 @@
 loading bullish.run…
 <script>
 // App home = the most recently launched bullish.run coin's page.
-fetch('https://hoodlaunchbackend-production.up.railway.app/api/board')
+// If the API is slow or down, land on Pulse instead of hanging here.
+fetch('https://hoodlaunchbackend-production.up.railway.app/api/board', { signal: AbortSignal.timeout(8000) })
   .then(function (r) { return r.json(); })
   .then(function (b) {
     var all = b.new.concat(b.graduating, b.graduated);
     if (!all.length) { location.replace('/launch'); return; }
     all.sort(function (x, y) { return new Date(y.created_at) - new Date(x.created_at); });
     location.replace('/coin/' + all[0].address);
-  });
+  })
+  .catch(function () { location.replace('/pulse'); });
 </script>
 </body>
 </html>
