@@ -12,6 +12,15 @@ body.ld #root { display: block; }
 #sky-bg { display: none; }
 body.app-sky #sky-bg { display: block; }
 
+/* Robinhood / Solana segmented switcher — grey/white scheme like landing tabs */
+.mkt-seg { display: inline-flex; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; padding: 3px; }
+.mkt-seg button { border: none; background: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--txt2); padding: 6px 16px; border-radius: 999px; }
+.mkt-seg button.on { background: #fff; color: #0b0b10; }
+.mkt-seg button:not(.on):hover { color: var(--txt); }
+.tk-list-mkt { padding: 10px 10px 4px; }
+.tk-list-mkt .mkt-seg { width: 100%; }
+.tk-list-mkt .mkt-seg button { flex: 1; }
+
 .hl-authbtn { display: inline-flex; align-items: center; gap: 7px; }
 .hl-auth-av { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 

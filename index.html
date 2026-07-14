@@ -22,8 +22,11 @@
     var v = document.getElementById('sky-bg')
     if (!v) return
     v.muted = true
+    v.load()
     var go = function () { v.play && v.play().catch(function () {}) }
-    go(); v.addEventListener('canplay', go); document.addEventListener('visibilitychange', go)
+    go(); v.addEventListener('loadeddata', go); v.addEventListener('canplay', go); document.addEventListener('visibilitychange', go)
+    // retry loading if the fetch got deprioritized (readyState stuck at 0)
+    setTimeout(function () { if (v.readyState === 0) { v.load(); go() } }, 2500)
   })()
 </script>
 <script type="module" src="/src/main.jsx"></script>

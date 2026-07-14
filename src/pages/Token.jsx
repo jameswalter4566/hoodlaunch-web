@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { createChart } from 'lightweight-charts'
 import { Connection, Transaction, PublicKey, TransactionInstruction } from '@solana/web3.js'
 import { API, RELAY, EXPLORER, usd, fmtAge, ethUsd, shortAddr } from '../api'
+import MarketSwitcher from '../components/MarketSwitcher.jsx'
 
 const SOLANA_RPC = API + '/api/solana-rpc'
 const hexToBytes = (hex) => { const h = hex.replace(/^0x/, ''); const o = new Uint8Array(h.length / 2); for (let i = 0; i < o.length; i++) o[i] = parseInt(h.substr(i * 2, 2), 16); return o }
@@ -17,6 +18,16 @@ export default function Token({ auth }) {
   const [side, setSide] = useState('buy')
   const [amt, setAmt] = useState('')
   const [status, setStatus] = useState('')
+  const [board, setBoard] = useState({ new: [], graduating: [], graduated: [] })
+  const [listTab, setListTab] = useState('new')
+  const [market, setMarket] = useState(localStorage.getItem('pl-market') || 'robinhood')
+
+  useEffect(() => {
+    let alive = true
+    const load = () => fetch(API + '/api/board').then((r) => r.json()).then((d) => alive && setBoard(d))
+    load(); const i = setInterval(load, 5000)
+    return () => { alive = false; clearInterval(i) }
+  }, [])
   const chartRef = useRef(null)
   const seriesRef = useRef(null)
 
@@ -81,9 +92,30 @@ export default function Token({ auth }) {
   const day = trades.filter((t) => Date.now() - new Date(t.ts).getTime() < 86400e3)
   const buys = day.filter((t) => t.side === 'buy'); const sells = day.filter((t) => t.side === 'sell')
 
+  const listItems = market === 'solana' ? [] : (board[listTab] || [])
+
   return (
     <div className="main tk-wrap">
       <div className="tk-layout" style={{ paddingTop: 12 }}>
+        <aside className="tk-list">
+          <div className="tk-list-mkt"><MarketSwitcher onChange={setMarket} /></div>
+          <div className="tk-list-tabs">
+            {['new', 'graduating', 'graduated'].map((b) => (
+              <button key={b} className={'tk-list-tab' + (listTab === b ? ' on' : '')} onClick={() => setListTab(b)}>{b[0].toUpperCase() + b.slice(1)}</button>
+            ))}
+          </div>
+          <div className="tk-list-body">
+            {market === 'solana'
+              ? <div className="tk-chart-empty" style={{ position: 'static', padding: '40px 0' }}>Solana — coming soon</div>
+              : listItems.map((t) => (
+                <Link key={t.address} className={'tk-row' + (t.address === address ? ' on' : '')} to={'/coin/' + t.address}>
+                  <div className="tk-row-img">{t.image_url ? <img src={t.image_url} onError={(e) => e.target.remove()} /> : (t.symbol || '?')[0].toUpperCase()}</div>
+                  <div className="tk-row-main"><div className="tk-row-sym">{t.symbol}</div><div className="tk-row-price">{usd(t.marketCapEth, eth)}</div></div>
+                  <div className="tk-row-right"><div className="tk-row-mc">{usd(t.marketCapEth, eth)} <span style={{ color: 'var(--txt3)', fontWeight: 500, fontSize: '10.5px' }}>MC</span></div><div className={'tk-row-chg ' + ((t.priceChange24h || 0) > 0 ? 'up' : (t.priceChange24h || 0) < 0 ? 'down' : '')}>{(t.priceChange24h || 0).toFixed(2)}%</div></div>
+                </Link>
+              ))}
+          </div>
+        </aside>
         <section className="tk-center">
           <div className="tk-head">
             <div className="tk-head-id">

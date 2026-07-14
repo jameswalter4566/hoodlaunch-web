@@ -3,6 +3,7 @@ import { Routes, Route, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import AuthButton from './components/AuthButton.jsx'
 import Landing from './pages/Landing.jsx'
+import Home from './pages/Home.jsx'
 import Pulse from './pages/Pulse.jsx'
 import Token from './pages/Token.jsx'
 import Launch from './pages/Launch.jsx'
@@ -16,6 +17,10 @@ function Sidebar() {
         <NavLink className="sb-brand" to="/"><img src="/logo.png" alt="" /><span>bullish</span></NavLink>
       </div>
       <nav className="sb-nav">
+        <NavLink to="/home" className={({ isActive }) => (isActive ? 'active' : '')}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></svg>
+          <span>Home</span>
+        </NavLink>
         <NavLink to="/pulse" className={({ isActive }) => (isActive ? 'active' : '')}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h4l3-8 4 16 3-8h6" /></svg>
           <span>Pulse</span>
@@ -58,6 +63,7 @@ export default function App() {
       <Sidebar />
       <AuthButton auth={auth} />
       <Routes>
+        <Route path="/home" element={<Home />} />
         <Route path="/pulse" element={<Pulse />} />
         <Route path="/coin/:address" element={<Token auth={auth} />} />
         <Route path="/launch" element={<Launch auth={auth} />} />

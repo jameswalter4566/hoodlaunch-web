@@ -46,7 +46,7 @@ export default function Landing({ auth }) {
         <div className="ld-badges"><span className="ld-badge">⚡ Built on Robinhood Chain</span><span className="ld-badge alt">◎ Trade with SOL</span></div>
         <h1 className="ld-h1">Trade and launch Robinhood<br />tokens on Solana</h1>
         <p className="ld-sub">Every new Robinhood Chain coin, streamed live — buy, sell and launch<br />with one Phantom signature.</p>
-        <a className="ld-cta" onClick={() => nav('/pulse')}>Start Trading</a>
+        <a className="ld-cta" onClick={() => nav('/home')}>Start Trading</a>
         <div className="ld-tabs">{['markets', 'pulse', 'launch'].map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v[0].toUpperCase() + v.slice(1)}</button>)}</div>
 
         <div className="ld-frame">
