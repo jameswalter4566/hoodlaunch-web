@@ -911,3 +911,73 @@ body.ld #hl-auth { top: 20px; }
 .pf-claim:hover { filter: brightness(1.06); }
 .pf-claim:disabled { opacity: 0.6; cursor: default; filter: none; }
 .pf-empty { margin-top: 40px; display: flex; justify-content: center; }
+
+/* ============ heaven-style floating glass panels over sky video ============ */
+body.app-sky { background: #0a0a12; }
+.app-sky-bg {
+  position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover;
+  z-index: 0; opacity: 0.55;
+}
+/* dark wash so panels/text stay readable over the clouds */
+body.app-sky::before {
+  content: ''; position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(10,10,18,0.35), rgba(6,5,14,0.82));
+  pointer-events: none;
+}
+body.app-sky .sb, body.app-sky .main, body.app-sky #hl-auth { position: relative; z-index: 2; }
+
+/* sidebar → floating glass */
+body.app-sky .sb {
+  background: rgba(14, 13, 22, 0.62);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-right: none;
+  margin: 10px 0 10px 10px;
+  height: calc(100vh - 20px);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* shared glass panel look */
+.glass {
+  background: rgba(16, 15, 24, 0.66);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+}
+
+/* ---- token page: three floating panels with gaps ---- */
+body.app-sky .tk-topbar { border-bottom: none; }
+body.app-sky .tk-layout { gap: 12px; padding: 0 12px 12px; }
+body.app-sky .tk-list,
+body.app-sky .tk-center,
+body.app-sky .tk-trade {
+  background: rgba(16, 15, 24, 0.66);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  overflow: hidden;
+}
+body.app-sky .tk-list { border-right: 1px solid rgba(255,255,255,0.07); }
+body.app-sky .tk-center { border-left: none; border-right: none; }
+body.app-sky .tk-trade { border-left: 1px solid rgba(255,255,255,0.07); }
+body.app-sky .tk-list-body .tk-row,
+body.app-sky .tk-table td, body.app-sky .tk-table th { border-color: rgba(255,255,255,0.05); }
+body.app-sky .tk-row:hover { background: rgba(255,255,255,0.05); }
+
+/* ---- pulse: three floating columns with gaps ---- */
+body.app-sky .pl-board { gap: 12px; padding: 12px 16px 16px; }
+body.app-sky .pl-col {
+  background: rgba(16, 15, 24, 0.66);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  overflow: hidden;
+}
+body.app-sky .pl-col-head { border-bottom: 1px solid rgba(255,255,255,0.07); }
+body.app-sky .pl-row { border-bottom: 1px solid rgba(255,255,255,0.05); }
+body.app-sky .pl-row:hover { background: rgba(255,255,255,0.05); }
+body.app-sky .pl-topbar { border-bottom: none; }
