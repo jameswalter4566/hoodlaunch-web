@@ -1,5 +1,11 @@
 /* React-app-specific additions (auth, profile modal, leaderboard) */
 
+/* React wraps everything in #root; the original static pages had the flex
+   layout directly on body. Mirror it so sidebar + main sit side by side. */
+body.app-sky #root { display: flex; width: 100%; min-height: 100vh; position: relative; z-index: 1; }
+body.ld #root { display: block; }
+#root { min-height: 100vh; }
+
 .hl-authbtn { display: inline-flex; align-items: center; gap: 7px; }
 .hl-auth-av { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 

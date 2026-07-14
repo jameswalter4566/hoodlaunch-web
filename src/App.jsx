@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import AuthButton from './components/AuthButton.jsx'
@@ -41,10 +42,19 @@ export default function App() {
   const loc = useLocation()
   const isLanding = loc.pathname === '/'
 
+  // The glass-panel + sky-video CSS is scoped to body.app-sky (landing is body.ld),
+  // exactly like the original static pages — so drive the body class by route.
+  useEffect(() => {
+    document.body.className = isLanding ? 'ld' : 'app-sky'
+    // nudge the background video to play (autoplay can stall behind content)
+    const v = document.querySelector('.app-sky-bg')
+    if (v) { v.muted = true; v.play?.().catch(() => {}) }
+  }, [isLanding])
+
   if (isLanding) return <Landing auth={auth} />
 
   return (
-    <div className="app-sky" style={{ display: 'flex', minHeight: '100vh' }}>
+    <>
       <video className="app-sky-bg" src="/sky.mp4" autoPlay muted loop playsInline />
       <Sidebar />
       <AuthButton auth={auth} />
@@ -56,6 +66,6 @@ export default function App() {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="*" element={<Pulse />} />
       </Routes>
-    </div>
+    </>
   )
 }
