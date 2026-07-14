@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
-import { usePrivy, useSolanaWallets } from '@privy-io/react-auth'
+import { usePrivy, useSolanaWallets, useLogin } from '@privy-io/react-auth'
 import { API } from './api'
 
 // Central auth hook: exposes the logged-in Solana address, Privy access token,
 // and our backend profile (username/avatar). Registers the profile on login.
 export function useAuth() {
-  const { ready, authenticated, user, login, logout, getAccessToken } = usePrivy()
+  const { ready, authenticated, user, logout, getAccessToken } = usePrivy()
+  // useLogin surfaces the precise failure reason, which the bare usePrivy().login
+  // swallows into the modal's generic "Error authenticating session".
+  const { login } = useLogin({
+    onComplete: ({ user, isNewUser, loginMethod }) =>
+      console.log('PRIVY_LOGIN_OK', { isNewUser, loginMethod, user }),
+    onError: (error) =>
+      console.error('PRIVY_LOGIN_ERROR', error, JSON.stringify(error)),
+  })
   const { wallets } = useSolanaWallets()
   const [token, setToken] = useState(null)
   const [profile, setProfile] = useState(null)
