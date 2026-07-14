@@ -96,7 +96,7 @@ export default function Launch({ auth }) {
       }
 
       setLx((l) => ({ ...l, active: true, done: true, pct: 100, txHash: dst, address, symbol: f.symbol }))
-      if (address) { await sleep(1800); navigate('/coin/' + address) }
+      if (address) { await sleep(1500); navigate('/coin/' + address.toLowerCase()) }
     } catch (e) {
       setLx((l) => ({ ...l, done: true, error: e.message || String(e) }))
     }
