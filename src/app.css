@@ -21,7 +21,8 @@ body.app-sky #sky-bg { display: block; }
 .tk-list-mkt .mkt-seg { width: 100%; }
 .tk-list-mkt .mkt-seg button { flex: 1; }
 
-.hl-authbtn { display: inline-flex; align-items: center; gap: 7px; }
+.hl-authbtn { display: inline-flex; align-items: center; gap: 7px; color: #fff; }
+.hl-authbtn.on { color: #fff; }
 .hl-auth-av { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 
 /* profile / auth modal */
