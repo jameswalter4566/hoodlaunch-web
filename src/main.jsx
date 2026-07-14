@@ -1,4 +1,4 @@
-import React from 'react'
+import { Buffer } from 'buffer'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { PrivyProvider } from '@privy-io/react-auth'
@@ -6,6 +6,10 @@ import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana'
 import App from './App.jsx'
 import '../styles.css'
 import './app.css'
+
+// Privy's Solana SIWS flow references the Node Buffer global, which browsers
+// lack and Vite doesn't polyfill — without this, login throws buffer_not_defined.
+globalThis.Buffer = globalThis.Buffer || Buffer
 
 const PRIVY_APP_ID = 'cmrkbr03m007f0cl5o5rgw12t'
 
