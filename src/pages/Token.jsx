@@ -9,6 +9,17 @@ const SOLANA_RPC = API + '/api/solana-rpc'
 const hexToBytes = (hex) => { const h = hex.replace(/^0x/, ''); const o = new Uint8Array(h.length / 2); for (let i = 0; i < o.length; i++) o[i] = parseInt(h.substr(i * 2, 2), 16); return o }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const priceUsd = (eth, e) => (!e ? eth.toExponential(3) : (eth * e >= 0.01 ? '$' + (eth * e).toFixed(4) : '$' + (eth * e).toExponential(2)))
+// socials come from IPFS metadata as full URLs or bare handles — normalize both
+const normUrl = (v, kind) => {
+  if (!v) return null
+  let s = String(v).trim()
+  if (!s) return null
+  if (/^https?:\/\//i.test(s)) return s
+  s = s.replace(/^@/, '')
+  if (kind === 'twitter') return 'https://x.com/' + s
+  if (kind === 'telegram') return 'https://t.me/' + s
+  return 'https://' + s
+}
 
 export default function Token({ auth }) {
   const { address } = useParams()
@@ -128,6 +139,13 @@ export default function Token({ auth }) {
               <div className="tk-head-img">{token.image_url ? <img src={token.image_url} alt="" onError={(e) => e.target.remove()} /> : (token.symbol || '?')[0].toUpperCase()}</div>
               <div><div className="tk-head-sym">{token.symbol}</div><div className="tk-head-name">{token.name}</div></div>
               <span className="tk-head-ca" onClick={() => navigator.clipboard.writeText(address)}>{shortAddr(address)} ⧉</span>
+              {token.socials && (token.socials.website || token.socials.twitter || token.socials.telegram) && (
+                <div className="tk-head-socials">
+                  {token.socials.website && <a href={normUrl(token.socials.website, 'website')} target="_blank" rel="noopener">🌐 Website</a>}
+                  {token.socials.twitter && <a href={normUrl(token.socials.twitter, 'twitter')} target="_blank" rel="noopener">𝕏 Twitter</a>}
+                  {token.socials.telegram && <a href={normUrl(token.socials.telegram, 'telegram')} target="_blank" rel="noopener">✈ Telegram</a>}
+                </div>
+              )}
             </div>
             <div className="tk-stats">
               <div className="tk-stat"><span>Market cap</span><b className="big">{usd(token.marketCapEth, eth)}</b></div>
