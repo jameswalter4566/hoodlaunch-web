@@ -1,0 +1,35 @@
+/* React-app-specific additions (auth, profile modal, leaderboard) */
+
+.hl-authbtn { display: inline-flex; align-items: center; gap: 7px; }
+.hl-auth-av { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+
+/* profile / auth modal */
+.pv-modal { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.72); display: flex; align-items: flex-start; justify-content: center; padding: 60px 16px; }
+.pv-card { width: 380px; max-width: 100%; background: var(--bg2); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.pv-head { display: flex; align-items: center; justify-content: space-between; }
+.pv-head b { font-size: 17px; font-weight: 800; }
+.pv-x { border: none; background: none; color: var(--txt3); font-size: 15px; cursor: pointer; }
+.pv-avwrap { text-align: center; margin: 16px 0; }
+.pv-av { width: 84px; height: 84px; border-radius: 50%; background: var(--card2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; color: var(--txt3); font-size: 30px; border: 2px solid var(--line2); }
+.pv-av img { width: 100%; height: 100%; object-fit: cover; }
+.pv-avhint { font-size: 11px; color: var(--txt3); margin-top: 6px; }
+.pv-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--txt2); margin-bottom: 6px; }
+.pv-input { width: 100%; background: var(--card); border: 1px solid var(--line2); border-radius: 10px; padding: 11px 13px; color: var(--txt); font-family: inherit; font-size: 14px; outline: none; }
+.pv-input:focus { border-color: var(--green); }
+.pv-wallet { margin-top: 12px; font-size: 12px; color: var(--txt3); }
+.pv-save { width: 100%; height: 44px; margin-top: 16px; border: none; border-radius: 999px; background: var(--grad); color: #08130a; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.pv-save:disabled { opacity: 0.6; }
+.pv-logout { width: 100%; height: 38px; margin-top: 8px; border: 1px solid var(--line2); border-radius: 999px; background: none; color: var(--txt2); font-family: inherit; font-size: 13px; cursor: pointer; }
+
+/* leaderboard */
+.lb-wrap { max-width: 760px; margin: 0 auto; padding: 20px; }
+.lb-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.lb-row { display: flex; align-items: center; gap: 14px; background: rgba(16,15,24,0.86); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; backdrop-filter: blur(18px); }
+.lb-rank { font-size: 16px; font-weight: 800; color: var(--txt3); width: 26px; text-align: center; }
+.lb-av { width: 38px; height: 38px; border-radius: 50%; background: var(--card2); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--green); overflow: hidden; }
+.lb-av img { width: 100%; height: 100%; object-fit: cover; }
+.lb-name { flex: 1; display: flex; flex-direction: column; }
+.lb-name b { font-weight: 800; }
+.lb-name span { font-size: 11.5px; color: var(--txt3); }
+.lb-stat { font-size: 15px; font-weight: 800; color: var(--green); }
+.lb-empty { text-align: center; color: var(--txt3); padding: 60px 0; }

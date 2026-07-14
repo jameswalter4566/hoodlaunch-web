@@ -1,94 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>bullish.run — Trade and launch Robinhood tokens on Solana</title>
-<meta name="description" content="Every new Robinhood Chain coin, streamed live. Buy, sell and launch with one Phantom signature — paid in SOL."/>
+<meta name="description" content="Every new Robinhood Chain coin, streamed live. Buy, sell and launch with one Phantom signature."/>
 <meta property="og:title" content="bullish.run"/>
 <meta property="og:description" content="Trade and launch Robinhood tokens on Solana."/>
 <meta property="og:image" content="/logo.png"/>
 <link rel="icon" href="/logo.png" type="image/png"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/styles.css"/>
-<script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
 </head>
-<body class="ld">
-
-<video class="ld-sky" src="/sky.mp4" autoplay muted loop playsinline></video>
-
-<div class="ld-wrap">
-  <div class="ld-brand"><img src="/logo.png" alt=""/><span>bullish</span></div>
-
-  <div class="ld-badges">
-    <span class="ld-badge">⚡ Built on Robinhood Chain</span>
-    <span class="ld-badge alt">◎ Trade with SOL</span>
-  </div>
-
-  <h1 class="ld-h1">Trade and launch Robinhood<br/>tokens on Solana</h1>
-  <p class="ld-sub">Every new Robinhood Chain coin, streamed live — buy, sell and launch<br/>with one Phantom signature.</p>
-
-  <a class="ld-cta" href="/app">Start Trading</a>
-
-  <div class="ld-tabs" id="ld-tabs">
-    <button class="on" data-view="markets">Markets</button>
-    <button data-view="pulse">Pulse</button>
-    <button data-view="launch">Launch</button>
-  </div>
-
-  <div class="ld-frame">
-    <div class="ld-frame-top">
-      <span class="ld-frame-brand"><img src="/logo.png" alt=""/>bullish</span>
-      <span class="ld-chip on" data-view="markets">Markets</span>
-      <span class="ld-chip" data-view="pulse">Pulse</span>
-      <span class="ld-chip" data-view="launch">Launch</span>
-      <span class="ld-frame-right"><span>PORTFOLIO</span><b>$12,480</b></span>
-    </div>
-
-    <div class="ld-frame-body ld-view on" data-view="markets">
-      <div class="ld-mkts" id="ld-mkts"></div>
-      <div class="ld-chart-wrap">
-        <div class="ld-chart-head" id="ld-chart-head">Loading live markets…</div>
-        <div class="ld-chart" id="ld-chart"></div>
-      </div>
-    </div>
-
-    <div class="ld-frame-body ld-view" data-view="pulse">
-      <div class="ld-pcol"><div class="ld-pcol-head">New Pairs</div><div id="ld-p-new"></div></div>
-      <div class="ld-pcol"><div class="ld-pcol-head">Final Stretch</div><div id="ld-p-stretch"></div></div>
-      <div class="ld-pcol"><div class="ld-pcol-head">Migrated</div><div id="ld-p-migrated"></div></div>
-    </div>
-
-    <div class="ld-frame-body ld-view" data-view="launch">
-      <div class="ld-lf">
-        <div class="ld-lf-head"><b>Launch a coin</b><span class="ld-lf-pill">LIVE</span></div>
-        <div class="ld-lf-sub">Deploy on Robinhood Chain — pay straight from your Solana wallet</div>
-        <div class="ld-lf-row">
-          <div class="ld-lf-upload">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-            Upload
-          </div>
-          <div class="ld-lf-fields">
-            <div class="ld-lf-input">Coin Name</div>
-            <div class="ld-lf-input">Ticker</div>
-          </div>
-        </div>
-        <div class="ld-lf-config">
-          <div><span>Total Supply</span><b>1B</b></div>
-          <div><span>Liquidity</span><b>Locked forever</b></div>
-          <div><span>Creator Fees</span><b>80% of 1% tier</b></div>
-          <div><span>Initial Buy</span><b>Paid in SOL</b></div>
-        </div>
-        <a class="ld-lf-cta" href="/launch">Connect Phantom to Launch</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="ld-foot">© 2026 bullish.run · Robinhood Chain · Powered by Relay</div>
-</div>
-
-<script src="/landing.js" defer></script>
-<script>window.PRIVY_APP_ID="cmrkbr03m007f0cl5o5rgw12t";</script>
-<script src="/auth.js" defer></script>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
