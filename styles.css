@@ -928,7 +928,7 @@ body.app-sky .sb, body.app-sky .main, body.app-sky #hl-auth { position: relative
 
 /* sidebar → floating glass */
 body.app-sky .sb {
-  background: rgba(14, 13, 22, 0.62);
+  background: rgba(14, 13, 22, 0.82);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-right: none;
@@ -940,7 +940,7 @@ body.app-sky .sb {
 
 /* shared glass panel look */
 .glass {
-  background: rgba(16, 15, 24, 0.66);
+  background: rgba(16, 15, 24, 0.86);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255,255,255,0.07);
@@ -953,7 +953,7 @@ body.app-sky .tk-layout { gap: 12px; padding: 0 12px 12px; }
 body.app-sky .tk-list,
 body.app-sky .tk-center,
 body.app-sky .tk-trade {
-  background: rgba(16, 15, 24, 0.66);
+  background: rgba(16, 15, 24, 0.86);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255,255,255,0.07);
@@ -970,7 +970,7 @@ body.app-sky .tk-row:hover { background: rgba(255,255,255,0.05); }
 /* ---- pulse: three floating columns with gaps ---- */
 body.app-sky .pl-board { gap: 12px; padding: 12px 16px 16px; }
 body.app-sky .pl-col {
-  background: rgba(16, 15, 24, 0.66);
+  background: rgba(16, 15, 24, 0.86);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255,255,255,0.07);
