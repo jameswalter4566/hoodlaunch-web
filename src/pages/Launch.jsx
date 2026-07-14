@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Connection, Transaction, PublicKey, TransactionInstruction } from '@solana/web3.js'
 import { API, RELAY, EXPLORER } from '../api'
 
@@ -10,13 +11,17 @@ const hexToBytes = (hex) => {
   return out
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+const shortHash = (h) => (h ? h.slice(0, 10) + '…' + h.slice(-8) : '')
 
 export default function Launch({ auth }) {
   const { authenticated, solana, primaryWallet, login } = auth
+  const navigate = useNavigate()
   const [f, setF] = useState({ name: '', symbol: '', description: '', twitter: '', telegram: '', website: '', initialBuySol: '' })
   const [imageUrl, setImageUrl] = useState('')
   const [status, setStatus] = useState('')
   const [statusCls, setStatusCls] = useState('')
+  // launching overlay: { active, pct, label, done, error, txHash, address }
+  const [lx, setLx] = useState({ active: false })
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
 
   async function onImage(file) {
@@ -31,10 +36,13 @@ export default function Launch({ auth }) {
   }
 
   async function launch() {
+    // pre-launch validation stays inline on the form
+    if (!authenticated) return login()
+    if (!f.name || !f.symbol) { setStatus('Coin name and ticker are required'); setStatusCls('hl-err'); return }
+    if (!imageUrl) { setStatus('Upload a logo image first'); setStatusCls('hl-err'); return }
+    setStatus(''); setStatusCls('')
+    setLx({ active: true, pct: 8, label: 'Preparing your launch…' })
     try {
-      if (!authenticated) return login()
-      if (!f.name || !f.symbol) throw new Error('Coin name and ticker are required')
-      if (!imageUrl) throw new Error('Upload a logo image first')
       // creator EVM address = the user's Phantom-derived Ethereum address (fees route via router to their SOL)
       let creator = null
       try { creator = (await window.phantom.ethereum.request({ method: 'eth_requestAccounts' }))[0] } catch {}
@@ -42,12 +50,11 @@ export default function Launch({ auth }) {
 
       let initialBuyEth
       if (Number(f.initialBuySol) > 0) {
-        setStatus('Converting SOL → ETH…'); setStatusCls('')
         const [e, sol] = await Promise.all(['ETH-USD', 'SOL-USD'].map((p) => fetch('https://api.coinbase.com/v2/prices/' + p + '/spot').then((r) => r.json()).then((x) => Number(x.data.amount))))
         initialBuyEth = ((Number(f.initialBuySol) * sol) / e).toFixed(8)
       }
 
-      setStatus('Getting launch quote…')
+      setLx((l) => ({ ...l, pct: 18, label: 'Pinning metadata to IPFS & quoting…' }))
       const res = await fetch(API + '/api/launch', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: f.name, symbol: f.symbol, description: f.description, imageUrl, socials: { twitter: f.twitter, telegram: f.telegram, website: f.website }, creator, solanaAddress: solana, initialBuyEth }),
@@ -56,7 +63,7 @@ export default function Launch({ auth }) {
       const quote = out.relayQuote
       if (!res.ok || !quote?.steps) throw new Error(quote?.message || out.error || 'Quote failed')
 
-      setStatus('Sign in Phantom — total ' + Number(quote.details.currencyIn.amountFormatted).toFixed(4) + ' SOL')
+      setLx((l) => ({ ...l, pct: 28, label: 'Approve ' + Number(quote.details.currencyIn.amountFormatted).toFixed(4) + ' SOL in Phantom…' }))
       const conn = new Connection(SOLANA_RPC)
       const tx = new Transaction()
       quote.steps.forEach((step) => step.items.forEach((item) => (item.data.instructions || []).forEach((ins) => {
@@ -65,23 +72,34 @@ export default function Launch({ auth }) {
       tx.feePayer = new PublicKey(solana)
       tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash
       // sign with the Privy-connected Solana wallet
-      const sent = await primaryWallet.sendTransaction(tx, conn)
-      setStatus('Sent — waiting for Relay to launch on Robinhood Chain…')
+      await primaryWallet.sendTransaction(tx, conn)
+      setLx((l) => ({ ...l, pct: 40, label: 'Launching on Robinhood Chain…' }))
 
       const check = quote.steps[0].items[0].check
+      let dst = null
       for (let i = 0; i < 45; i++) {
         await sleep(2000)
         const st = await fetch(RELAY + check.endpoint).then((r) => r.json())
-        if (st.status === 'success') {
-          const dst = st.txHashes?.[0]
-          setStatus('🚀 Launched! ' + (dst ? '' : 'Check the feed shortly.')); setStatusCls('hl-ok')
-          if (dst) window.open(EXPLORER + '/tx/' + dst, '_blank')
-          return
-        }
+        if (st.status === 'success') { dst = st.txHashes?.[0]; break }
         if (st.status === 'failure' || st.status === 'refund') throw new Error('Relay ' + st.status + ' — SOL refunded if deducted.')
+        setLx((l) => ({ ...l, pct: Math.min(80, 40 + i * 4), label: 'Launching on Robinhood Chain…' }))
       }
-      setStatus('Still filling — check relay.link with your wallet.')
-    } catch (e) { setStatus(e.message || String(e)); setStatusCls('hl-err') }
+      if (!dst) throw new Error('Still filling — check relay.link with your wallet.')
+
+      // decode the new token address from the launch tx so we can jump to /coin
+      setLx((l) => ({ ...l, pct: 88, label: 'Confirming your coin…', txHash: dst }))
+      let address = null
+      for (let i = 0; i < 20; i++) {
+        const r = await fetch(API + '/api/launch/result/' + dst).then((x) => (x.ok ? x.json() : null)).catch(() => null)
+        if (r?.address) { address = r.address; break }
+        await sleep(1500)
+      }
+
+      setLx((l) => ({ ...l, active: true, done: true, pct: 100, txHash: dst, address, symbol: f.symbol }))
+      if (address) { await sleep(1800); navigate('/coin/' + address) }
+    } catch (e) {
+      setLx((l) => ({ ...l, done: true, error: e.message || String(e) }))
+    }
   }
 
   return (
@@ -124,6 +142,38 @@ export default function Launch({ auth }) {
           <div className="hl-sidebox hl-sidebox-gold"><h3>How it works</h3><ol><li>Fill in your coin details</li><li>Sign one SOL transaction with Phantom</li><li>Relay launches it on Robinhood Chain (~2s)</li><li>LP locked forever, trades instantly</li><li>Claim your creator fees as SOL</li></ol></div>
         </aside>
       </main>
+
+      {lx.active && (
+        <div className="lx-overlay">
+          <div className="lx-card">
+            {!lx.done ? (
+              <>
+                <div className="lx-logo">{imageUrl ? <img src={imageUrl} alt="" /> : (f.symbol || '?')[0].toUpperCase()}</div>
+                <div className="lx-title">Launching {f.symbol || 'your coin'}…</div>
+                <div className="lx-bar"><i style={{ width: (lx.pct || 0) + '%' }} /></div>
+                <div className="lx-stage">{lx.label}</div>
+              </>
+            ) : lx.error ? (
+              <>
+                <div className="lx-title lx-err">Launch didn’t complete</div>
+                <div className="lx-stage">{lx.error}</div>
+                <button className="lx-btn lx-btn-ghost" onClick={() => setLx({ active: false })}>Close</button>
+              </>
+            ) : (
+              <>
+                <div className="lx-logo lx-logo-live">{imageUrl ? <img src={imageUrl} alt="" /> : (lx.symbol || '?')[0].toUpperCase()}</div>
+                <div className="lx-title">🚀 {lx.symbol} is live!</div>
+                {lx.txHash && <a className="lx-tx" href={EXPLORER + '/tx/' + lx.txHash} target="_blank" rel="noopener">{shortHash(lx.txHash)} ↗</a>}
+                {lx.address ? (
+                  <button className="lx-btn" onClick={() => navigate('/coin/' + lx.address)}>View your coin →</button>
+                ) : (
+                  <div className="lx-stage">Indexing — it’ll appear in the feed shortly.</div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
