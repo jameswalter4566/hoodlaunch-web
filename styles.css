@@ -916,12 +916,12 @@ body.ld #hl-auth { top: 20px; }
 body.app-sky { background: #0a0a12; }
 .app-sky-bg {
   position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover;
-  z-index: 0; opacity: 0.55;
+  z-index: 0; opacity: 0.9;
 }
 /* dark wash so panels/text stay readable over the clouds */
 body.app-sky::before {
   content: ''; position: fixed; inset: 0; z-index: 0;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(10,10,18,0.35), rgba(6,5,14,0.82));
+  background: radial-gradient(130% 100% at 50% 0%, rgba(10,10,20,0.25), rgba(6,5,14,0.62));
   pointer-events: none;
 }
 body.app-sky .sb, body.app-sky .main, body.app-sky #hl-auth { position: relative; z-index: 2; }
