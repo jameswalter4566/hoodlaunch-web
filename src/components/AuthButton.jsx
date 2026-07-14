@@ -46,7 +46,7 @@ export default function AuthButton({ auth }) {
 
   return (
     <>
-      <div id="hl-auth">
+      <div id="hl-auth" style={{ position: 'fixed', top: 14, right: 18, zIndex: 200 }}>
         {authenticated && solana ? (
           <button className="hl-authbtn on" onClick={() => setOpen(true)}>
             {profile?.avatar_url && <img src={profile.avatar_url} alt="" className="hl-auth-av" />}

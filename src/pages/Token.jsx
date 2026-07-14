@@ -96,6 +96,12 @@ export default function Token({ auth }) {
 
   return (
     <div className="main tk-wrap">
+      <div className="tk-topbar">
+        <div className="tk-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" /></svg>
+          <input placeholder="Search for tokens..." />
+        </div>
+      </div>
       <div className="tk-layout" style={{ paddingTop: 12 }}>
         <aside className="tk-list">
           <div className="tk-list-mkt"><MarketSwitcher onChange={setMarket} /></div>
