@@ -55,18 +55,6 @@ export default function App() {
 
   return (
     <>
-      <video
-        className="app-sky-bg"
-        src="/sky.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        ref={(el) => { if (el) { el.muted = true; el.play?.().catch(() => {}) } }}
-        onCanPlay={(e) => e.currentTarget.play?.().catch(() => {})}
-        onLoadedData={(e) => e.currentTarget.play?.().catch(() => {})}
-      />
       <Sidebar />
       <AuthButton auth={auth} />
       <Routes>

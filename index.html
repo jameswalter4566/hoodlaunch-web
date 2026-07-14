@@ -12,7 +12,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 </head>
 <body>
+<!-- Background sky video lives outside #root so it sits behind the app content
+     as a real body sibling (shown only on app pages via body.app-sky). -->
+<video id="sky-bg" class="app-sky-bg" src="/sky.mp4" autoplay muted loop playsinline preload="auto"></video>
 <div id="root"></div>
+<script>
+  // keep the background video playing regardless of React's lifecycle
+  (function () {
+    var v = document.getElementById('sky-bg')
+    if (!v) return
+    v.muted = true
+    var go = function () { v.play && v.play().catch(function () {}) }
+    go(); v.addEventListener('canplay', go); document.addEventListener('visibilitychange', go)
+  })()
+</script>
 <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

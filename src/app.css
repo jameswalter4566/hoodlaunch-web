@@ -6,6 +6,12 @@ body.app-sky #root { display: flex; width: 100%; min-height: 100vh; position: re
 body.ld #root { display: block; }
 #root { min-height: 100vh; }
 
+/* The background sky video lives in index.html as a body sibling. Show it only
+   on the app pages (landing renders its own .ld-sky). z-index 0 keeps it behind
+   #root (which is z-index 1). */
+#sky-bg { display: none; }
+body.app-sky #sky-bg { display: block; }
+
 .hl-authbtn { display: inline-flex; align-items: center; gap: 7px; }
 .hl-auth-av { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 
