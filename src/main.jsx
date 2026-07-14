@@ -14,10 +14,17 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
-        appearance: { theme: 'dark', accentColor: '#21c95e', logo: '/logo.png', walletChainType: 'solana-only' },
+        appearance: {
+          theme: 'dark',
+          accentColor: '#21c95e',
+          logo: '/logo.png',
+          walletChainType: 'solana-only',
+          // show only Solana wallets in the modal (no MetaMask/EVM clutter)
+          walletList: ['phantom', 'solflare', 'backpack', 'okx_wallet'],
+        },
         loginMethods: ['wallet'],
         externalWallets: { solana: { connectors: toSolanaWalletConnectors() } },
-        embeddedWallets: { createOnLogin: 'off' },
+        embeddedWallets: { createOnLogin: 'off', showWalletUIs: false },
       }}
     >
       <BrowserRouter>
