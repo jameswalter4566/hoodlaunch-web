@@ -55,3 +55,58 @@ body.app-sky #sky-bg { display: block; }
 .lb-name span { font-size: 11.5px; color: var(--txt3); }
 .lb-stat { font-size: 15px; font-weight: 800; color: var(--green); }
 .lb-empty { text-align: center; color: var(--txt3); padding: 60px 0; }
+
+/* ---- profile page (redesigned) ---- */
+.pf2-wrap { max-width: 1080px; margin: 0 auto; padding: 22px 20px 60px; display: flex; flex-direction: column; gap: 16px; }
+
+/* card base */
+.pf2-head, .pf2-stat, .pf2-panel { background: rgba(16,15,24,0.86); border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(18px); }
+
+/* header */
+.pf2-head { display: flex; align-items: center; gap: 18px; padding: 20px 22px; }
+.pf2-av { width: 76px; height: 76px; border-radius: 50%; flex-shrink: 0; background: var(--card2); border: 2px solid var(--line2); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: var(--green); overflow: hidden; }
+.pf2-av img { width: 100%; height: 100%; object-fit: cover; }
+.pf2-id { flex: 1; min-width: 0; }
+.pf2-name { font-size: 22px; font-weight: 800; line-height: 1.1; margin-bottom: 9px; }
+.pf2-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf2-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--line2); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--txt2); font-family: inherit; cursor: pointer; text-decoration: none; }
+.pf2-chip:hover { border-color: var(--green); color: var(--txt); }
+.pf2-chip-i { color: var(--txt3); font-size: 11px; }
+.pf2-edit { align-self: flex-start; border: none; border-radius: 999px; background: var(--grad); color: #08130a; font-family: inherit; font-size: 13px; font-weight: 800; padding: 10px 20px; cursor: pointer; }
+
+/* stats row */
+.pf2-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.pf2-stat { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.pf2-stat span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--txt3); }
+.pf2-stat b { font-size: 22px; font-weight: 800; line-height: 1.1; }
+.pf2-stat small { font-size: 11.5px; color: var(--txt3); }
+
+/* launches panel */
+.pf2-panel { padding: 18px 20px 22px; }
+.pf2-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.pf2-panel-title { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 9px; }
+.pf2-badge { font-size: 11px; font-weight: 800; color: var(--txt2); background: var(--card2); border-radius: 999px; padding: 2px 9px; }
+.pf2-panel-cta { font-size: 12.5px; font-weight: 700; color: var(--green); text-decoration: none; }
+.pf2-panel-cta:hover { text-decoration: underline; }
+.pf2-empty { text-align: center; color: var(--txt3); padding: 48px 0; font-size: 13.5px; }
+.pf2-list { display: flex; flex-direction: column; gap: 8px; }
+.pf2-row { display: flex; align-items: center; gap: 13px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; }
+.pf2-row-img { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; background: var(--card2); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--green); overflow: hidden; text-decoration: none; }
+.pf2-row-img img { width: 100%; height: 100%; object-fit: cover; }
+.pf2-row-main { flex: 1; min-width: 0; }
+.pf2-row-nm { display: block; text-decoration: none; color: var(--txt); }
+.pf2-row-nm b { font-weight: 800; }
+.pf2-row-nm span { color: var(--txt3); font-size: 12.5px; font-weight: 500; }
+.pf2-row-sub { font-size: 12px; color: var(--txt3); margin-top: 2px; }
+.pf2-claim { border: none; border-radius: 999px; background: var(--grad); color: #08130a; font-family: inherit; font-size: 12.5px; font-weight: 800; padding: 8px 18px; cursor: pointer; }
+.pf2-claim:disabled { background: var(--card2); color: var(--txt3); cursor: default; }
+
+/* guest */
+.pf2-guest { max-width: 420px; margin: 80px auto 0; text-align: center; display: flex; flex-direction: column; gap: 18px; align-items: center; }
+.pf2-guest-txt { color: var(--txt2); font-size: 14px; line-height: 1.5; }
+.pf2-cta { border: none; border-radius: 999px; background: var(--grad); color: #08130a; font-family: inherit; font-size: 14px; font-weight: 800; padding: 12px 28px; cursor: pointer; }
+
+@media (max-width: 720px) {
+  .pf2-stats { grid-template-columns: repeat(2, 1fr); }
+  .pf2-head { flex-wrap: wrap; }
+}
