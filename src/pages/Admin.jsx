@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { API, EXPLORER, usd, ethUsd, fmtAge, shortAddr } from '../api'
-import Launch from './Launch.jsx'
+import AdminLaunch from './AdminLaunch.jsx'
 
 // Private admin dashboard: PIN gate (validated server-side via ADMIN_PIN — the PIN
 // never ships in the bundle), a 1:1 launch form, and a read-only launch monitor.
@@ -59,8 +59,8 @@ export default function Admin({ auth }) {
           </div>
         </div>
 
-        {/* 1:1 launch form */}
-        <div className="adm-launchbox"><Launch auth={auth} /></div>
+        {/* Isolated admin launch panel (its own copy — not the public /launch) */}
+        <div className="adm-launchbox"><AdminLaunch auth={auth} /></div>
 
         <div className="adm-stats">
           <div className="adm-stat"><span>Launches</span><b>{rows.length}</b></div>
