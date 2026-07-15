@@ -14,7 +14,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const shortHash = (h) => (h ? h.slice(0, 10) + '…' + h.slice(-8) : '')
 
 export default function Launch({ auth }) {
-  const { authenticated, solana, primaryWallet, login } = auth
+  const { authenticated, solana, primaryWallet, login, evmAddress } = auth
   const navigate = useNavigate()
   const [f, setF] = useState({ name: '', symbol: '', description: '', twitter: '', telegram: '', website: '', initialBuySol: '' })
   const [imageUrl, setImageUrl] = useState('')
@@ -44,10 +44,10 @@ export default function Launch({ auth }) {
     setStatus(''); setStatusCls('')
     setLx({ active: true, pct: 8, label: 'Preparing your launch…' })
     try {
-      // creator EVM address = the user's Phantom-derived Ethereum address (fees route via router to their SOL)
-      let creator = null
-      try { creator = (await window.phantom.ethereum.request({ method: 'eth_requestAccounts' }))[0] } catch {}
-      if (!creator) throw new Error('Connect Phantom to continue')
+      // initial-buy tokens go to the user's silent embedded EVM wallet (so the
+      // creator can later sell them); fees still route to treasury -> their SOL.
+      const creator = evmAddress
+      if (!creator) throw new Error('Your trading wallet is still setting up — try again in a moment')
 
       let initialBuyEth
       if (Number(f.initialBuySol) > 0) {

@@ -91,8 +91,10 @@ export default function Token({ auth }) {
     try {
       if (!auth.authenticated) return auth.login()
       const usdAmt = parseFloat(amt); if (!(usdAmt > 0)) throw new Error('Enter an amount')
-      let evm; try { evm = (await window.phantom.ethereum.request({ method: 'eth_requestAccounts' }))[0] } catch {}
-      if (!evm) throw new Error('Connect Phantom')
+      // tokens are delivered to the user's silent embedded EVM wallet (they hold +
+      // later sell from it — no MetaMask, no network switching).
+      const evm = auth.evmAddress
+      if (!evm) throw new Error('Your trading wallet is still setting up — try again in a moment')
       const sol = await fetch('https://api.coinbase.com/v2/prices/SOL-USD/spot').then((r) => r.json()).then((x) => Number(x.data.amount))
       const lamports = Math.floor((usdAmt / sol) * 1e9)
       setStatus('Getting quote…')

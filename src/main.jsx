@@ -3,9 +3,20 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { PrivyProvider } from '@privy-io/react-auth'
 import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana'
+import { defineChain } from 'viem'
 import App from './App.jsx'
 import '../styles.css'
 import './app.css'
+
+// Robinhood Chain — the embedded EVM wallet transacts here (holds the user's
+// bought tokens, signs sells). Users still LOG IN with Phantom (Solana); the
+// embedded EVM wallet is provisioned silently so trading feels pure-SOL.
+const robinhoodChain = defineChain({
+  id: 4663,
+  name: 'Robinhood Chain',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: { default: { http: ['https://rpc.mainnet.chain.robinhood.com'] } },
+})
 
 // Privy's Solana SIWS flow references the Node Buffer global, which browsers
 // lack and Vite doesn't polyfill — without this, login throws buffer_not_defined.
@@ -29,7 +40,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       },
       loginMethods: ['wallet'],
       externalWallets: { solana: { connectors: toSolanaWalletConnectors() } },
-      embeddedWallets: { createOnLogin: 'off', showWalletUIs: false },
+      // create a silent embedded EVM wallet on login — it holds bought tokens and
+      // signs sells on Robinhood Chain, so users never touch MetaMask/EVM gas.
+      embeddedWallets: { ethereum: { createOnLogin: 'all-users' }, showWalletUIs: false },
+      supportedChains: [robinhoodChain],
+      defaultChain: robinhoodChain,
     }}
   >
     <BrowserRouter>

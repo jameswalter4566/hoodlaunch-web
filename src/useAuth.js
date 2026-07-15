@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { usePrivy, useSolanaWallets, useLogin } from '@privy-io/react-auth'
+import { usePrivy, useSolanaWallets, useLogin, useWallets } from '@privy-io/react-auth'
 import { API } from './api'
 
 // Central auth hook: exposes the logged-in Solana address, Privy access token,
@@ -15,6 +15,7 @@ export function useAuth() {
       console.error('PRIVY_LOGIN_ERROR', error, JSON.stringify(error)),
   })
   const { wallets } = useSolanaWallets()
+  const { wallets: evmWallets } = useWallets()
   const [token, setToken] = useState(null)
   const [profile, setProfile] = useState(null)
 
@@ -22,6 +23,11 @@ export function useAuth() {
     wallets?.[0]?.address ||
     user?.linkedAccounts?.find((a) => a.type === 'wallet' && a.chainType === 'solana')?.address ||
     null
+
+  // the silent embedded EVM wallet (Privy) — holds the user's Robinhood Chain
+  // tokens and signs sells. Prefer the embedded (walletClientType 'privy').
+  const evmWallet = evmWallets?.find((w) => w.walletClientType === 'privy') || evmWallets?.[0] || null
+  const evmAddress = evmWallet?.address || null
 
   useEffect(() => {
     let cancelled = false
@@ -44,5 +50,5 @@ export function useAuth() {
     return () => { cancelled = true }
   }, [authenticated, solana])
 
-  return { ready, authenticated, solana, token, profile, setProfile, login, logout, primaryWallet: wallets?.[0] }
+  return { ready, authenticated, solana, token, profile, setProfile, login, logout, primaryWallet: wallets?.[0], evmAddress, evmWallet }
 }
