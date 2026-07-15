@@ -72,11 +72,7 @@ function Bundler({ auth }) {
   // ---- balances (SOL buyer + token holder per slot, + dev wallet) ----
   const refresh = useCallback(async () => {
     const cur = B.loadSlots()
-    const entries = await Promise.all(cur.map(async (s) => {
-      const [sol, ts, ethBal] = await Promise.all([B.solBalance(s.solPubkey), B.tokenState(address, s.evmAddress), B.evmEthBalance(s.evmAddress)])
-      return [s.id, { sol, tokens: ts.tokens, supplyPct: ts.supplyPct, ethBal }]
-    }))
-    setBals(Object.fromEntries(entries))
+    setBals(await B.walletStates(address, cur))
     if (auth.evmAddress) { const d = await B.tokenState(address, auth.evmAddress); setDevBal({ tokens: d.tokens || 0, supplyPct: d.supplyPct || 0 }) }
   }, [address, auth.evmAddress])
   useEffect(() => { refresh(); const i = setInterval(refresh, 15000); return () => clearInterval(i) }, [refresh])
@@ -117,16 +113,19 @@ function Bundler({ auth }) {
     flash('Buying from ' + list.length + ' wallets…')
     for (const s of list) { doBuy(s, solAmount); await new Promise((r) => setTimeout(r, 350 + Math.random() * 500)) }
   }
+  // Sells are serialized on purpose: each one triggers a gas top-up from the single
+  // treasury wallet, so firing them in parallel would collide on the treasury nonce.
   async function sellAll(pct) {
     const list = B.loadSlots()
     if (!list.length) return
     flash('Selling ' + pct + '% from ' + list.length + ' wallets…')
-    for (const s of list) { doSell(s, pct); await new Promise((r) => setTimeout(r, 250)) }
+    for (const s of list) await doSell(s, pct)
+    flash('Done selling ' + pct + '% across ' + list.length + ' wallets')
   }
   async function nuke() {
     if (!confirm('Nuke — sell 100% of every bundle wallet AND the dev wallet?')) return
-    sellAll(100)
-    if (auth.evmAddress) doSellDev(100)
+    await sellAll(100)
+    if (auth.evmAddress) await doSellDev(100)
   }
 
   // wallet management

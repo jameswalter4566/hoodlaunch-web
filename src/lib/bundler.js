@@ -75,6 +75,23 @@ export async function evmEthBalance(evmAddress) {
   try { return Number(await rhClient.getBalance({ address: evmAddress })) / 1e18 } catch { return null }
 }
 
+// Batched balance read for the terminal: ONE totalSupply call, then SOL + token +
+// ETH per slot. Keeps RPC load to ~2 RH calls per wallet instead of 3.
+export async function walletStates(tokenAddress, slots) {
+  let supply = 0n
+  try { supply = await rhClient.readContract({ address: tokenAddress, abi: erc20Abi, functionName: 'totalSupply' }) } catch { /* keep 0 */ }
+  const out = {}
+  await Promise.all(slots.map(async (s) => {
+    const [sol, tok, ethBal] = await Promise.all([
+      solBalance(s.solPubkey),
+      rhClient.readContract({ address: tokenAddress, abi: erc20Abi, functionName: 'balanceOf', args: [s.evmAddress] }).catch(() => 0n),
+      rhClient.getBalance({ address: s.evmAddress }).catch(() => 0n),
+    ])
+    out[s.id] = { sol, tokens: Number(tok) / 1e18, supplyPct: supply > 0n ? Number((tok * 1000000n) / supply) / 10000 : 0, ethBal: Number(ethBal) / 1e18 }
+  }))
+  return out
+}
+
 // ---- BUY: Relay SOL -> token, paid + signed by the slot's Solana wallet ----
 // solAmount is the SOL to spend; tokens are delivered to the slot's EVM twin.
 export async function buy(slot, tokenAddress, solAmount) {
