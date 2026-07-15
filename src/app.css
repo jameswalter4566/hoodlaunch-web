@@ -170,3 +170,11 @@ body.app-sky #sky-bg { display: block; }
 .lc-chain button { flex: 1; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--txt2); padding: 9px 12px; border-radius: 9px; }
 .lc-chain button.on { background: var(--grad); color: #08130a; }
 .lc-chain button:not(.on):hover { color: var(--txt); }
+
+/* launch fee-strategy selector */
+.fee-modes { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 14px; }
+.fee-mode { text-align: left; background: var(--card); border: 1px solid var(--line2); border-radius: 12px; padding: 11px 14px; cursor: pointer; font-family: inherit; }
+.fee-mode.on { border-color: var(--green); background: rgba(33,201,94,0.06); }
+.fee-mode-t { font-size: 13.5px; font-weight: 800; color: var(--txt); }
+.fee-mode-d { font-size: 11.5px; color: var(--txt3); margin-top: 3px; line-height: 1.4; }
+.fee-mode.on .fee-mode-d { color: var(--txt2); }

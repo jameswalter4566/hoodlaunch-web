@@ -13,6 +13,15 @@ const hexToBytes = (hex) => {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const shortHash = (h) => (h ? h.slice(0, 10) + '…' + h.slice(-8) : '')
 
+// What happens to the token's LP trading fees (Robinhood Chain launches).
+const FEE_MODES = [
+  { id: 'keep', icon: '💰', title: 'Keep fees', desc: 'All LP trading fees go straight to your wallet.' },
+  { id: 'buyback', icon: '🔥', title: 'Buyback flywheel', desc: 'Fees auto-buy your token for constant buy pressure; bought tokens land in your dev wallet.' },
+  { id: 'split', icon: '⚖️', title: 'Split 50 / 50', desc: 'Half the fees to you, half into automatic buybacks.' },
+  { id: 'lp', icon: '🌊', title: 'Compound LP', desc: 'Fees are added back into the pool — deeper liquidity, higher runners.' },
+  { id: 'airdrop', icon: '🎁', title: 'Airdrop to holders', desc: 'Fees are distributed to your token holders, pro-rata.' },
+]
+
 export default function Launch({ auth }) {
   const { authenticated, solana, primaryWallet, login, evmAddress } = auth
   const navigate = useNavigate()
@@ -21,6 +30,7 @@ export default function Launch({ auth }) {
   const [status, setStatus] = useState('')
   const [statusCls, setStatusCls] = useState('')
   const [chain, setChain] = useState('robinhood') // 'robinhood' | 'solana' (pump.fun)
+  const [feeMode, setFeeMode] = useState('keep') // keep | buyback | split | lp | airdrop
   // launching overlay: { active, pct, label, done, error, txHash, address }
   const [lx, setLx] = useState({ active: false })
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
@@ -58,7 +68,7 @@ export default function Launch({ auth }) {
       setLx((l) => ({ ...l, pct: 18, label: 'Pinning metadata to IPFS & quoting…' }))
       const res = await fetch(API + '/api/launch', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: f.name, symbol: f.symbol, description: f.description, imageUrl, socials: { twitter: f.twitter, telegram: f.telegram, website: f.website }, creator, solanaAddress: solana, initialBuyEth }),
+        body: JSON.stringify({ name: f.name, symbol: f.symbol, description: f.description, imageUrl, socials: { twitter: f.twitter, telegram: f.telegram, website: f.website }, creator, solanaAddress: solana, initialBuyEth, feeMode }),
       })
       const out = await res.json()
       const quote = out.relayQuote
@@ -185,6 +195,20 @@ export default function Launch({ auth }) {
           <label className="hl-label">Initial Buy (SOL)</label>
           <input className="hl-input" type="number" min="0" step="0.01" value={f.initialBuySol} onChange={set('initialBuySol')} placeholder="0.0" />
           <div className="hl-fieldnote">Optional — buy your own coin in the same transaction, paid in SOL.</div>
+
+          {chain === 'robinhood' && (
+            <>
+              <label className="hl-label">Fee strategy</label>
+              <div className="fee-modes">
+                {FEE_MODES.map((m) => (
+                  <button key={m.id} type="button" className={'fee-mode' + (feeMode === m.id ? ' on' : '')} onClick={() => setFeeMode(m.id)}>
+                    <div className="fee-mode-t">{m.icon} {m.title}</div>
+                    <div className="fee-mode-d">{m.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
 
           <div className="hl-fee">{chain === 'solana' ? <>Launches on <b>pump.fun</b> · bonding curve · shows on Axiom</> : <>LP locked forever · fees claimable as SOL · Est. bridge time: <b>~2s</b></>}</div>
           <button className="hl-cta" onClick={chain === 'solana' ? launchSolana : launch}>{!authenticated ? 'Log in to Launch' : chain === 'solana' ? 'Launch on pump.fun' : 'Launch Coin'}</button>
