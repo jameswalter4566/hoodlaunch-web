@@ -156,9 +156,8 @@ function Bundler({ auth }) {
   }
   const removeSlot = (id) => { if (confirm('Remove this wallet from the bundle? (its keys are only stored here)')) persist(slots.filter((s) => s.id !== id)) }
   const copy = (t) => navigator.clipboard.writeText(t).catch(() => {})
-  const exportKeys = (s) => { copy(JSON.stringify(B.slotKeys(s), null, 2)); flash('Both keys copied for ' + B.short(s.evmAddress)) }
-  const exportAll = () => { B.downloadJSON('bullish-bundle-wallets-' + slots.length + '.json', B.loadSlots()); flash('Downloaded backup of ' + slots.length + ' wallets') }
-  const importAll = (file) => { const r = new FileReader(); r.onload = () => { try { persist(B.mergeSlots(B.loadSlots(), JSON.parse(r.result))); flash('Imported backup') } catch { flash('Bad backup file') } }; r.readAsText(file) }
+  const copySolKey = (s) => { copy(s.solSecret); flash('Solana private key copied · ' + B.short(s.solPubkey)) }
+  const copyEvmKey = (s) => { copy(s.evmPk); flash('EVM private key copied · ' + B.short(s.evmAddress)) }
 
   async function fundAll() {
     const per = Number(fundSol)
@@ -286,8 +285,6 @@ function Bundler({ auth }) {
             <div className="bn-inline"><input type="number" min="1" max="100" value={createN} onChange={(e) => setCreateN(e.target.value)} /><button className="bn-tool" onClick={createWallets}>+ Create Wallets</button></div>
             <button className="bn-tool" onClick={() => setShowImport((v) => !v)}>Import Wallets</button>
             <div className="bn-inline"><input type="number" min="0" step="0.01" value={fundSol} onChange={(e) => setFundSol(e.target.value)} /><button className="bn-tool green" onClick={fundAll}>Fund {fundSol} SOL ea</button></div>
-            <button className="bn-tool" onClick={exportAll} title="Download a backup of ALL wallet keys">⇩ Export keys</button>
-            <label className="bn-tool" title="Restore wallets from a backup file" style={{ cursor: 'pointer' }}>⇧ Import keys<input type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files[0]; if (f) importAll(f); e.target.value = '' }} /></label>
             <button className="bn-tool" onClick={refresh} title="Refresh balances">↻</button>
           </div>
         </div>
@@ -330,7 +327,8 @@ function Bundler({ auth }) {
                     <td className="c"><SellPresets s={s} /></td>
                     <td className="bn-actions">
                       <button title="Bridge this wallet's ETH → SOL (into its own buyer)" disabled={busy[s.id]} onClick={() => doBridge(s)}>⇄</button>
-                      <button title="Export keys" onClick={() => exportKeys(s)}>🔑</button>
+                      <button title="Copy Solana private key — paste into Phantom" onClick={() => copySolKey(s)}>SOL</button>
+                      <button title="Copy EVM private key — paste into MetaMask" onClick={() => copyEvmKey(s)}>EVM</button>
                       <button title="Remove" onClick={() => removeSlot(s.id)}>✕</button>
                     </td>
                   </tr>

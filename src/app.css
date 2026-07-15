@@ -242,9 +242,9 @@ body.app-sky #sky-bg { display: block; }
 .aw-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
 .aw-lbl { font-size: 12px; font-weight: 800; color: var(--txt2); text-transform: uppercase; letter-spacing: 0.4px; }
 .aw-note { font-size: 10.5px; color: var(--txt3); }
-.aw-hbtn { border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 999px; padding: 4px 11px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.aw-hbtn:first-of-type { margin-left: auto; }
-.aw-hbtn:hover { color: var(--green); border-color: var(--green); }
+.aw-kbtn { border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 7px; padding: 5px 9px; font-family: inherit; font-size: 10.5px; font-weight: 800; cursor: pointer; flex: 0 0 auto; min-width: 34px; }
+.aw-kbtn:hover { color: var(--green); border-color: var(--green); }
+.aw-kbtn.ok { color: var(--green); border-color: var(--green); }
 .aw-refresh { border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 7px; width: 26px; height: 24px; font-size: 13px; cursor: pointer; }
 .aw-refresh:hover { color: var(--green); border-color: var(--green); }
 .aw-rows { display: flex; flex-direction: column; gap: 7px; }
