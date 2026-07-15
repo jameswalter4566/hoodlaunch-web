@@ -2,14 +2,31 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { createChart } from 'lightweight-charts'
 import { Connection, Transaction, PublicKey, TransactionInstruction } from '@solana/web3.js'
-import { createPublicClient, http as vHttp, defineChain } from 'viem'
+import { createPublicClient, http as vHttp, defineChain, encodeFunctionData } from 'viem'
 import { API, RELAY, EXPLORER, usd, fmtAge, ethUsd, shortAddr } from '../api'
 import MarketSwitcher from '../components/MarketSwitcher.jsx'
 
 // read-only Robinhood Chain client (token balances for the embedded EVM wallet)
 const RH = defineChain({ id: 4663, name: 'Robinhood Chain', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: ['https://rpc.mainnet.chain.robinhood.com'] } } })
 const rhClient = createPublicClient({ chain: RH, transport: vHttp() })
-const erc20Abi = [{ type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ type: 'address' }], outputs: [{ type: 'uint256' }] }]
+// selling is a direct on-chain swap (token -> WETH -> ETH) on Robinhood Chain —
+// ~0.1s/block, so it's near-instant; the bridge to SOL is a separate action.
+const SWAP_ROUTER = '0xCaf681a66D020601342297493863E78C959E5cb2'
+const WETH_ADDR = '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73'
+const POOL_FEE = 10000
+const MAX_UINT = (1n << 256n) - 1n
+const erc20Abi = [
+  { type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ type: 'address' }], outputs: [{ type: 'uint256' }] },
+  { type: 'function', name: 'approve', stateMutability: 'nonpayable', inputs: [{ type: 'address' }, { type: 'uint256' }], outputs: [{ type: 'bool' }] },
+  { type: 'function', name: 'allowance', stateMutability: 'view', inputs: [{ type: 'address' }, { type: 'address' }], outputs: [{ type: 'uint256' }] },
+]
+const routerAbi = [{ type: 'function', name: 'exactInputSingle', stateMutability: 'payable', inputs: [{ type: 'tuple', components: [
+  { name: 'tokenIn', type: 'address' }, { name: 'tokenOut', type: 'address' }, { name: 'fee', type: 'uint24' }, { name: 'recipient', type: 'address' },
+  { name: 'amountIn', type: 'uint256' }, { name: 'amountOutMinimum', type: 'uint256' }, { name: 'sqrtPriceLimitX96', type: 'uint160' } ] }], outputs: [{ type: 'uint256' }] }]
+const wethAbi = [
+  { type: 'function', name: 'withdraw', stateMutability: 'nonpayable', inputs: [{ type: 'uint256' }], outputs: [] },
+  { type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ type: 'address' }], outputs: [{ type: 'uint256' }] },
+]
 const toHexWei = (v) => (v ? '0x' + BigInt(v).toString(16) : '0x0')
 
 const SOLANA_RPC = API + '/api/solana-rpc'
@@ -129,43 +146,39 @@ export default function Token({ auth }) {
     } catch (e) { setStatus(e.message || String(e)) }
   }
 
-  // Sell: the embedded EVM wallet signs the token->WETH->ETH->SOL Relay steps (no
-  // popup, gas funded from treasury). `amt` is a percentage of the token balance.
+  // Sell = an INSTANT on-chain swap (token -> WETH -> ETH) on Robinhood Chain,
+  // signed by the embedded wallet. No cross-chain wait; the user ends up with ETH
+  // in their trading wallet and cashes out to SOL separately via "Bridge to SOL".
   async function sell() {
     try {
       if (!auth.authenticated) return auth.login()
       const evm = auth.evmAddress
       if (!evm) throw new Error('Your trading wallet is still setting up — try again in a moment')
       setStatus('Checking balance…')
-      const bal = await rhClient.readContract({ address, abi: erc20Abi, functionName: 'balanceOf', args: [evm] })
-      if (bal === 0n) throw new Error('You have no ' + token.symbol + ' to sell')
+      const balc = await rhClient.readContract({ address, abi: erc20Abi, functionName: 'balanceOf', args: [evm] })
+      if (balc === 0n) throw new Error('You have no ' + token.symbol + ' to sell')
       const pct = Math.min(100, Math.max(1, parseFloat(amt) || 100))
-      const amountWei = (bal * BigInt(Math.floor(pct * 100))) / 10000n
+      const amountWei = (balc * BigInt(Math.floor(pct * 100))) / 10000n
       setStatus('Preparing wallet…')
       await fetch(API + '/api/gas/topup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evmAddress: evm }) })
-      setStatus('Getting sell quote…')
-      const q = await fetch(API + '/api/quote/sell?token=' + address + '&tokenAmountWei=' + amountWei.toString() + '&evmAddress=' + evm + '&solanaRecipient=' + auth.solana).then((r) => r.json())
-      if (!q.steps) throw new Error(q.message || 'Sell quote failed')
-      setStatus('Selling ' + token.symbol + '…')
       try { await auth.evmWallet.switchChain(4663) } catch {}
       const provider = await auth.evmWallet.getEthereumProvider()
-      let check = null
-      for (const step of q.steps) {
-        for (const it of step.items || []) {
-          if (it.status === 'complete') continue
-          const t = it.data
-          const hash = await provider.request({ method: 'eth_sendTransaction', params: [{ from: evm, to: t.to, data: t.data || '0x', value: toHexWei(t.value) }] })
-          // wait for each step to mine before the next so the wallet's nonce
-          // advances in order (multiple steps back-to-back cause 'nonce too low').
-          await rhClient.waitForTransactionReceipt({ hash })
-          if (it.check) check = it.check
-        }
+      const send = async (to, data) => {
+        const hash = await provider.request({ method: 'eth_sendTransaction', params: [{ from: evm, to, data, value: '0x0' }] })
+        await rhClient.waitForTransactionReceipt({ hash }) // ~0.1s/block; keeps nonces ordered
+        return hash
       }
-      setStatus('Bridging to SOL…')
-      if (check) {
-        for (let i = 0; i < 45; i++) { await sleep(2000); const st = await fetch(RELAY + check.endpoint).then((r) => r.json()); if (st.status === 'success') { setStatus('✅ Sold — SOL sent to your Phantom'); return } if (st.status === 'failure' || st.status === 'refund') throw new Error('Relay ' + st.status) }
-      }
-      setStatus('✅ Sold ' + token.symbol)
+      // 1. approve the token to the router (once; MAX so future sells skip this)
+      const allowance = await rhClient.readContract({ address, abi: erc20Abi, functionName: 'allowance', args: [evm, SWAP_ROUTER] })
+      if (allowance < amountWei) { setStatus('Approving…'); await send(address, encodeFunctionData({ abi: erc20Abi, functionName: 'approve', args: [SWAP_ROUTER, MAX_UINT] })) }
+      // 2. swap token -> WETH (instant, accept any price on a thin pool)
+      setStatus('Selling ' + token.symbol + '…')
+      await send(SWAP_ROUTER, encodeFunctionData({ abi: routerAbi, functionName: 'exactInputSingle', args: [{ tokenIn: address, tokenOut: WETH_ADDR, fee: POOL_FEE, recipient: evm, amountIn: amountWei, amountOutMinimum: 0n, sqrtPriceLimitX96: 0n }] }))
+      // 3. unwrap WETH -> native ETH so it shows in the wallet balance
+      const wbal = await rhClient.readContract({ address: WETH_ADDR, abi: wethAbi, functionName: 'balanceOf', args: [evm] })
+      if (wbal > 0n) await send(WETH_ADDR, encodeFunctionData({ abi: wethAbi, functionName: 'withdraw', args: [wbal] }))
+      setStatus('✅ Sold ' + token.symbol + ' — ETH is in your wallet. Use “Bridge to SOL” to cash out to Phantom.')
+      setSellBal(null); setAmt('')
     } catch (e) { setStatus(e.message || String(e)) }
   }
 
