@@ -112,15 +112,16 @@ export default function AdminLaunch({ auth }) {
         await sleep(1500)
       }
 
-      // fire the bundle-wallet snipes the instant the token address is known.
-      // Sniped tokens land in the admin's trading (embedded EVM) wallet.
+      // fire the bundle-wallet snipes the instant the token address is known —
+      // each buyer pays SOL via Relay and the tokens land in ITS OWN EVM twin.
       if (address && bundleRef.current?.hasSnipers()) {
         setLx((l) => ({ ...l, pct: 96, label: 'Sniping with bundle wallets…' }))
-        try { await bundleRef.current.fire(address, creator) } catch { /* per-wallet errors shown on each row */ }
+        try { await bundleRef.current.fire(address) } catch { /* per-wallet errors shown on each row */ }
       }
 
       setLx((l) => ({ ...l, active: true, done: true, pct: 100, txHash: dst, address, symbol: f.symbol }))
-      if (address) { await sleep(1500); navigate('/coin/' + address.toLowerCase()) }
+      // land in the private bundler terminal for this coin (not the public page)
+      if (address) { await sleep(1500); navigate('/admin/launch/' + address.toLowerCase()) }
     } catch (e) {
       setLx((l) => ({ ...l, done: true, error: e.message || String(e) }))
     }
@@ -264,7 +265,7 @@ export default function AdminLaunch({ auth }) {
                   <>
                     {lx.txHash && <a className="lx-tx" href={EXPLORER + '/tx/' + lx.txHash} target="_blank" rel="noopener">{shortHash(lx.txHash)} ↗</a>}
                     {lx.address ? (
-                      <button className="lx-btn" onClick={() => navigate('/coin/' + lx.address)}>View your coin →</button>
+                      <button className="lx-btn" onClick={() => navigate('/admin/launch/' + lx.address.toLowerCase())}>Open bundler →</button>
                     ) : (
                       <div className="lx-stage">Indexing — it’ll appear in the feed shortly.</div>
                     )}

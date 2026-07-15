@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { API, EXPLORER, usd, ethUsd, fmtAge, shortAddr } from '../api'
 import AdminLaunch from './AdminLaunch.jsx'
+import AdminGate from '../components/AdminGate.jsx'
 
-// Private admin dashboard: PIN gate (validated server-side via ADMIN_PIN — the PIN
-// never ships in the bundle), a 1:1 launch form, and a read-only launch monitor.
+// Private admin dashboard behind the shared PIN gate: a 1:1 launch form and a
+// read-only launch monitor. Each launch links to its bundler terminal.
 export default function Admin({ auth }) {
-  const [authed, setAuthed] = useState(sessionStorage.getItem('adm') === '1')
-  const [entry, setEntry] = useState('')
+  return <AdminGate><AdminInner auth={auth} /></AdminGate>
+}
+
+function AdminInner({ auth }) {
   const [rows, setRows] = useState([])
   const [eth, setEth] = useState(0)
 
   useEffect(() => {
-    if (!authed) return
     let alive = true
     ethUsd().then((v) => alive && setEth(v))
     const load = () =>
@@ -24,25 +26,7 @@ export default function Admin({ auth }) {
       }).catch(() => {})
     load(); const i = setInterval(load, 5000)
     return () => { alive = false; clearInterval(i) }
-  }, [authed])
-
-  async function submit(e) {
-    e.preventDefault()
-    try {
-      const r = await fetch(API + '/api/admin/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: entry }) }).then((x) => x.json())
-      if (r.ok) { sessionStorage.setItem('adm', '1'); setAuthed(true) } else setEntry('')
-    } catch { setEntry('') }
-  }
-
-  if (!authed) return (
-    <div className="main adm-gate">
-      <form className="adm-pin" onSubmit={submit}>
-        <div className="adm-pin-t">Admin access</div>
-        <input autoFocus inputMode="numeric" maxLength={4} value={entry} onChange={(e) => setEntry(e.target.value.replace(/\D/g, ''))} placeholder="••••" />
-        <button type="submit">Enter</button>
-      </form>
-    </div>
-  )
+  }, [])
 
   const totVol = rows.reduce((a, t) => a + (t.volume24hEth || t.volumeTotalEth || 0), 0)
   const totMc = rows.reduce((a, t) => a + (t.marketCapEth || 0), 0)
@@ -82,7 +66,7 @@ export default function Admin({ auth }) {
                   <td>{Math.round(t.graduationPct || 0)}%</td>
                   <td>{t.fee_mode && t.fee_mode !== 'keep' ? t.fee_mode : '—'}</td>
                   <td>{fmtAge(t.created_at)}</td>
-                  <td className="adm-links"><Link to={'/coin/' + t.address}>coin</Link><a href={EXPLORER + '/token/' + t.address} target="_blank" rel="noopener">scan</a></td>
+                  <td className="adm-links"><Link to={'/admin/launch/' + t.address} style={{ color: 'var(--green)', fontWeight: 700 }}>bundler</Link><Link to={'/coin/' + t.address}>coin</Link><a href={EXPLORER + '/token/' + t.address} target="_blank" rel="noopener">scan</a></td>
                 </tr>
               ))}
               {!rows.length && <tr><td colSpan="8" className="adm-empty">No launches yet.</td></tr>}

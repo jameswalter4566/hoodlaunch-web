@@ -10,6 +10,7 @@ import Launch from './pages/Launch.jsx'
 import Profile from './pages/Profile.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 import Admin from './pages/Admin.jsx'
+import AdminBundler from './pages/AdminBundler.jsx'
 
 function Sidebar() {
   return (
@@ -71,6 +72,7 @@ export default function App() {
         <Route path="/profile" element={<Profile auth={auth} />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/admin" element={<Admin auth={auth} />} />
+        <Route path="/admin/launch/:address" element={<AdminBundler auth={auth} />} />
         <Route path="*" element={<Pulse />} />
       </Routes>
     </>

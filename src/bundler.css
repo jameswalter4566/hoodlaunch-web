@@ -1,0 +1,92 @@
+/* Admin bundler terminal (/admin/launch/:address) */
+.bn { padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.bn-top { display: flex; align-items: center; gap: 18px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--bg2); flex: 0 0 auto; }
+.bn-top-id { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bn-top-img { width: 38px; height: 38px; border-radius: 10px; background: var(--card2); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--green); overflow: hidden; }
+.bn-top-img img { width: 100%; height: 100%; object-fit: cover; }
+.bn-top-sym { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.bn-badge { font-size: 9px; font-weight: 800; letter-spacing: 0.5px; color: var(--yellow); background: var(--yellow-soft); border-radius: 5px; padding: 2px 6px; }
+.bn-top-ca { border: none; background: none; color: var(--txt3); font-family: ui-monospace, monospace; font-size: 11.5px; cursor: pointer; padding: 2px 0; }
+.bn-top-ca:hover { color: var(--green); }
+.bn-top-stats { display: flex; gap: 22px; margin-left: 8px; flex-wrap: wrap; }
+.bn-top-stats > div { display: flex; flex-direction: column; gap: 1px; }
+.bn-top-stats span { font-size: 10px; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.3px; }
+.bn-top-stats b { font-size: 14px; font-weight: 800; }
+.bn-top-r { margin-left: auto; display: flex; gap: 8px; }
+.bn-ghost { border: 1px solid var(--line2); background: var(--card); color: var(--txt2); border-radius: 8px; padding: 8px 13px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; }
+.bn-ghost:hover { color: var(--txt); border-color: var(--green); }
+
+.bn-mid { display: flex; flex: 1; min-height: 0; }
+.bn-chart-wrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.bn-chart { flex: 1; min-height: 220px; }
+.bn-swaps { height: 190px; border-top: 1px solid var(--line); overflow-y: auto; }
+.bn-swaps-h { font-size: 11px; font-weight: 800; color: var(--txt3); text-transform: uppercase; padding: 8px 14px; position: sticky; top: 0; background: var(--bg); }
+.bn-swaps-t { width: 100%; border-collapse: collapse; font-size: 12px; }
+.bn-swaps-t th { text-align: left; color: var(--txt3); font-weight: 600; padding: 4px 14px; font-size: 10.5px; text-transform: uppercase; }
+.bn-swaps-t td { padding: 5px 14px; border-top: 1px solid var(--line); color: var(--txt2); }
+.bn-swaps-t tr.mine td { background: rgba(33, 201, 94, 0.05); }
+.side-buy { color: var(--green); font-weight: 700; }
+.side-sell { color: var(--red); font-weight: 700; }
+
+.bn-panel { width: 320px; flex: 0 0 320px; border-left: 1px solid var(--line); padding: 14px; overflow-y: auto; background: var(--bg2); }
+.bn-bs { display: flex; gap: 6px; background: var(--card); border: 1px solid var(--line2); border-radius: 10px; padding: 4px; margin-bottom: 12px; }
+.bn-bs button { flex: 1; border: none; background: none; color: var(--txt2); font-family: inherit; font-weight: 800; font-size: 13px; padding: 9px; border-radius: 7px; cursor: pointer; }
+.bn-bs button.on { background: var(--grad); color: #08130a; }
+.bn-bs button.sell.on { background: var(--red); color: #fff; }
+.bn-field { display: flex; align-items: center; background: var(--card); border: 1px solid var(--line2); border-radius: 10px; padding: 10px 12px; }
+.bn-field input { flex: 1; background: none; border: none; outline: none; color: var(--txt); font-family: inherit; font-size: 20px; font-weight: 800; width: 0; }
+.bn-field span { font-size: 11px; color: var(--txt3); font-weight: 700; white-space: nowrap; }
+.bn-quick { display: flex; gap: 6px; margin: 8px 0; }
+.bn-quick button { flex: 1; border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 7px; padding: 6px; font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+.bn-quick button:hover { color: var(--txt); border-color: var(--green); }
+.bn-cta { width: 100%; border: none; border-radius: 10px; padding: 12px; font-family: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; margin-top: 2px; }
+.bn-cta.buy { background: var(--grad); color: #08130a; }
+.bn-cta.sell { background: var(--red); color: #fff; }
+.bn-sec { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.bn-sec-h { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; font-weight: 700; color: var(--txt2); margin-bottom: 7px; }
+.bn-sec-h b { color: var(--txt); }
+.bn-presets { display: flex; gap: 5px; }
+.bn-presets.wide button { flex: 1; }
+.bn-presets button { border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 6px; padding: 5px 8px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; min-width: 34px; }
+.bn-presets.buy button:hover:not(:disabled) { color: var(--green); border-color: var(--green); background: var(--green-soft); }
+.bn-presets.sell button:hover:not(:disabled) { color: var(--red); border-color: var(--red); background: var(--red-soft); }
+.bn-presets button:disabled { opacity: 0.4; cursor: default; }
+.bn-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.bn-metrics > div { background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; display: flex; flex-direction: column; gap: 2px; }
+.bn-metrics span { font-size: 10px; color: var(--txt3); text-transform: uppercase; }
+.bn-metrics b { font-size: 14px; font-weight: 800; }
+.bn-nuke { width: 100%; margin-top: 14px; border: 1px solid var(--red); background: var(--red-soft); color: var(--red); border-radius: 10px; padding: 11px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.bn-nuke:hover { background: var(--red); color: #fff; }
+.bn-status { margin-top: 10px; font-size: 12px; color: var(--txt2); background: var(--card); border: 1px solid var(--line2); border-radius: 8px; padding: 8px 11px; }
+.bn .up { color: var(--green); }
+.bn .down { color: var(--red); }
+
+.bn-wallets { flex: 0 0 auto; max-height: 42vh; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--bg2); }
+.bn-wallets-h { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.bn-wallets-tabs button { border: none; background: none; color: var(--txt); font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; padding: 4px 0; border-bottom: 2px solid var(--green); }
+.bn-wallets-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bn-inline { display: inline-flex; align-items: center; gap: 5px; }
+.bn-inline input { width: 62px; background: var(--card); border: 1px solid var(--line2); border-radius: 7px; padding: 6px 8px; color: var(--txt); font-family: inherit; font-size: 12px; font-weight: 700; outline: none; text-align: right; }
+.bn-tool { border: 1px solid var(--line2); background: var(--card); color: var(--txt); border-radius: 8px; padding: 7px 12px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.bn-tool:hover { border-color: var(--green); color: var(--green); }
+.bn-tool.green { background: var(--grad); color: #08130a; border: none; }
+.bn-import { display: flex; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); align-items: flex-start; }
+.bn-import textarea { flex: 1; background: var(--card); border: 1px solid var(--line2); border-radius: 9px; padding: 9px 12px; color: var(--txt); font-family: ui-monospace, monospace; font-size: 12px; outline: none; resize: vertical; }
+.bn-table-wrap { overflow-y: auto; }
+.bn-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.bn-table th { position: sticky; top: 0; background: var(--bg); text-align: left; color: var(--txt3); font-weight: 600; font-size: 10.5px; text-transform: uppercase; padding: 7px 14px; z-index: 1; }
+.bn-table th.c, .bn-table td.c { text-align: center; }
+.bn-table td { padding: 7px 14px; border-top: 1px solid var(--line); color: var(--txt2); vertical-align: middle; }
+.bn-table tr.dev td { background: rgba(255, 214, 10, 0.04); }
+.bn-table tr.busy td { background: rgba(255, 214, 10, 0.06); }
+.bn-addr { font-family: ui-monospace, monospace; color: var(--txt); font-weight: 600; }
+.bn-tag { font-size: 9px; font-weight: 800; color: var(--yellow); background: var(--yellow-soft); border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+.bn-copy { border: 1px solid var(--line2); background: var(--card2); color: var(--txt3); border-radius: 6px; padding: 3px 7px; font-family: inherit; font-size: 10.5px; font-weight: 700; cursor: pointer; margin-left: 8px; }
+.bn-copy:hover { color: var(--green); border-color: var(--green); }
+.bn-dim { color: var(--txt3); }
+.bn-table td.ok { color: var(--green); font-weight: 700; }
+.bn-actions { display: flex; gap: 4px; }
+.bn-actions button { border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 6px; padding: 4px 7px; cursor: pointer; font-size: 11px; }
+.bn-actions button:hover { border-color: var(--green); }
+.bn-empty { text-align: center; color: var(--txt3); padding: 30px 14px; }
+.bn-table tfoot td { border-top: 1px solid var(--line2); color: var(--txt2); font-weight: 700; font-size: 12px; background: var(--bg); position: sticky; bottom: 0; }
