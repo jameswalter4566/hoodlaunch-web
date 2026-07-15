@@ -20,10 +20,15 @@ export default function Profile({ auth }) {
   const [edit, setEdit] = useState(false)
   const [ethBal, setEthBal] = useState(null)
   const [solBal, setSolBal] = useState(null)
+  const [holdings, setHoldings] = useState([])
 
   useEffect(() => {
     if (!evmAddress) return
     rhClient.getBalance({ address: evmAddress }).then((b) => setEthBal(Number(b) / 1e18)).catch(() => {})
+    let alive = true
+    const loadH = () => fetch(API + '/api/holdings/' + evmAddress).then((r) => r.json()).then((d) => alive && setHoldings(d.holdings || [])).catch(() => {})
+    loadH(); const i = setInterval(loadH, 10000)
+    return () => { alive = false; clearInterval(i) }
   }, [evmAddress])
   useEffect(() => {
     if (!solana) return
@@ -123,6 +128,27 @@ export default function Profile({ auth }) {
             </div>
           </div>
           <div className="pf2-keynote">Your trading wallet holds the tokens you buy. Anyone with its private key controls it — never share it.</div>
+        </div>
+
+        {/* holdings panel */}
+        <div className="pf2-panel">
+          <div className="pf2-panel-head"><div className="pf2-panel-title">Holdings <span className="pf2-badge">{holdings.length}</span></div></div>
+          {holdings.length === 0 ? (
+            <div className="pf2-empty">No token holdings yet — buy a coin and it’ll show up here.</div>
+          ) : (
+            <div className="pf2-list">
+              {holdings.map((h) => (
+                <div className="pf2-row" key={h.address}>
+                  <Link className="pf2-row-img" to={'/coin/' + h.address}>{h.image_url ? <img src={h.image_url} alt="" onError={(e) => e.target.remove()} /> : (h.symbol || '?')[0].toUpperCase()}</Link>
+                  <div className="pf2-row-main">
+                    <Link to={'/coin/' + h.address} className="pf2-row-nm"><b>{h.symbol}</b> <span>{h.name}</span></Link>
+                    <div className="pf2-row-sub">{h.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} {h.symbol}</div>
+                  </div>
+                  <div className="pf2-holdval">{usd(h.valueEth, eth)}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* launches panel */}
