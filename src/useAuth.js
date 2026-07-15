@@ -5,7 +5,7 @@ import { API } from './api'
 // Central auth hook: exposes the logged-in Solana address, Privy access token,
 // and our backend profile (username/avatar). Registers the profile on login.
 export function useAuth() {
-  const { ready, authenticated, user, logout, getAccessToken } = usePrivy()
+  const { ready, authenticated, user, logout, getAccessToken, exportWallet } = usePrivy()
   // useLogin surfaces the precise failure reason, which the bare usePrivy().login
   // swallows into the modal's generic "Error authenticating session".
   const { login } = useLogin({
@@ -50,5 +50,5 @@ export function useAuth() {
     return () => { cancelled = true }
   }, [authenticated, solana])
 
-  return { ready, authenticated, solana, token, profile, setProfile, login, logout, primaryWallet: wallets?.[0], evmAddress, evmWallet }
+  return { ready, authenticated, solana, token, profile, setProfile, login, logout, primaryWallet: wallets?.[0], evmAddress, evmWallet, exportWallet }
 }

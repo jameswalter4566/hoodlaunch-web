@@ -1,15 +1,34 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { createPublicClient, http, defineChain } from 'viem'
+import { Connection, PublicKey } from '@solana/web3.js'
 import { API, authFetch, usd, ethUsd, fmtAge, shortAddr } from '../api'
 
+const RH = defineChain({ id: 4663, name: 'Robinhood Chain', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: ['https://rpc.mainnet.chain.robinhood.com'] } } })
+const rhClient = createPublicClient({ chain: RH, transport: http() })
+const solConn = new Connection(API + '/api/solana-rpc')
+const bal = (n, d) => (n == null ? '—' : n.toFixed(d))
+
 export default function Profile({ auth }) {
-  const { authenticated, solana, token, profile, setProfile, login } = auth
+  const { authenticated, solana, token, profile, setProfile, login, evmAddress, exportWallet } = auth
   const [launches, setLaunches] = useState([])
   const [eth, setEth] = useState(0)
   const [fees, setFees] = useState({})
   const [claiming, setClaiming] = useState({})
   const [copied, setCopied] = useState(false)
+  const [copiedEvm, setCopiedEvm] = useState(false)
   const [edit, setEdit] = useState(false)
+  const [ethBal, setEthBal] = useState(null)
+  const [solBal, setSolBal] = useState(null)
+
+  useEffect(() => {
+    if (!evmAddress) return
+    rhClient.getBalance({ address: evmAddress }).then((b) => setEthBal(Number(b) / 1e18)).catch(() => {})
+  }, [evmAddress])
+  useEffect(() => {
+    if (!solana) return
+    solConn.getBalance(new PublicKey(solana)).then((b) => setSolBal(b / 1e9)).catch(() => {})
+  }, [solana])
 
   useEffect(() => {
     if (!authenticated || !token || !solana) return
@@ -77,6 +96,33 @@ export default function Profile({ auth }) {
           <div className="pf2-stat"><span>Unclaimed fees</span><b>{usd(totalFees, eth)}</b><small>claimable as SOL</small></div>
           <div className="pf2-stat"><span>Claimable</span><b>{claimableCount}</b><small>{claimableCount === 1 ? 'position' : 'positions'} with fees</small></div>
           <div className="pf2-stat"><span>Member since</span><b>{since ? since.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}</b><small>{since ? fmtAge(since.toISOString()) + ' ago' : ''}</small></div>
+        </div>
+
+        {/* wallets + settings */}
+        <div className="pf2-panel">
+          <div className="pf2-panel-head"><div className="pf2-panel-title">Wallets &amp; settings</div></div>
+          <div className="pf2-wallets">
+            <div className="pf2-wallet">
+              <img src="/robinhood.png" alt="" className="pf2-wlogo" />
+              <div className="pf2-wmain">
+                <div className="pf2-wname">Robinhood Chain <span>trading wallet</span></div>
+                <button className="pf2-waddr" onClick={() => { navigator.clipboard.writeText(evmAddress); setCopiedEvm(true); setTimeout(() => setCopiedEvm(false), 1400) }}>{copiedEvm ? 'Copied!' : shortAddr(evmAddress)} ⧉</button>
+              </div>
+              <div className="pf2-wright">
+                <b>{bal(ethBal, 4)} ETH</b>
+                <button className="pf2-export" onClick={() => exportWallet({ address: evmAddress })}>🔑 Export private key</button>
+              </div>
+            </div>
+            <div className="pf2-wallet">
+              <img src="/solana.png" alt="" className="pf2-wlogo" />
+              <div className="pf2-wmain">
+                <div className="pf2-wname">Solana <span>Phantom</span></div>
+                <button className="pf2-waddr" onClick={copyAddr}>{copied ? 'Copied!' : shortAddr(solana)} ⧉</button>
+              </div>
+              <div className="pf2-wright"><b>{bal(solBal, 3)} SOL</b></div>
+            </div>
+          </div>
+          <div className="pf2-keynote">Your trading wallet holds the tokens you buy. Anyone with its private key controls it — never share it.</div>
         </div>
 
         {/* launches panel */}
