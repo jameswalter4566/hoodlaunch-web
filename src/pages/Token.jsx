@@ -144,7 +144,10 @@ export default function Token({ auth }) {
         for (const it of step.items || []) {
           if (it.status === 'complete') continue
           const t = it.data
-          await provider.request({ method: 'eth_sendTransaction', params: [{ from: evm, to: t.to, data: t.data || '0x', value: toHexWei(t.value) }] })
+          const hash = await provider.request({ method: 'eth_sendTransaction', params: [{ from: evm, to: t.to, data: t.data || '0x', value: toHexWei(t.value) }] })
+          // wait for each step to mine before the next so the wallet's nonce
+          // advances in order (multiple steps back-to-back cause 'nonce too low').
+          await rhClient.waitForTransactionReceipt({ hash })
           if (it.check) check = it.check
         }
       }
