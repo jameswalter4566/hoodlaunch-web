@@ -141,3 +141,9 @@ body.app-sky #sky-bg { display: block; }
 .ld-loginbtn { padding: 9px 20px; border-radius: 999px; background: var(--grad); color: #08130a; border: none; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
 .ld-loginbtn:hover { filter: brightness(1.05); }
 @media (max-width: 560px) { .ld-xbtn { padding: 8px 12px; font-size: 12px; } .ld-topbar { top: 12px; right: 12px; gap: 7px; } }
+
+/* launch page chain toggle (Robinhood / Solana pump.fun) */
+.lc-chain { display: flex; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--line2); border-radius: 12px; padding: 4px; margin: 4px 0 18px; }
+.lc-chain button { flex: 1; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--txt2); padding: 9px 12px; border-radius: 9px; }
+.lc-chain button.on { background: var(--grad); color: #08130a; }
+.lc-chain button:not(.on):hover { color: var(--txt); }

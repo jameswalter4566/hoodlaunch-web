@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Connection, Transaction, PublicKey, TransactionInstruction } from '@solana/web3.js'
+import { Connection, Transaction, PublicKey, TransactionInstruction, Keypair, VersionedTransaction } from '@solana/web3.js'
 import { API, RELAY, EXPLORER } from '../api'
 
 const SOLANA_RPC = API + '/api/solana-rpc'
@@ -20,6 +20,7 @@ export default function Launch({ auth }) {
   const [imageUrl, setImageUrl] = useState('')
   const [status, setStatus] = useState('')
   const [statusCls, setStatusCls] = useState('')
+  const [chain, setChain] = useState('robinhood') // 'robinhood' | 'solana' (pump.fun)
   // launching overlay: { active, pct, label, done, error, txHash, address }
   const [lx, setLx] = useState({ active: false })
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
@@ -102,12 +103,64 @@ export default function Launch({ auth }) {
     }
   }
 
+  // Launch a REAL pump.fun token on Solana via PumpPortal, signed by the user's
+  // Phantom (Privy) wallet. Metadata is pinned to our IPFS; the token then shows
+  // on pump.fun / Axiom.
+  async function launchSolana() {
+    if (!authenticated) return login()
+    if (!f.name || !f.symbol) { setStatus('Coin name and ticker are required'); setStatusCls('hl-err'); return }
+    if (!imageUrl) { setStatus('Upload a logo image first'); setStatusCls('hl-err'); return }
+    setStatus(''); setStatusCls('')
+    setLx({ active: true, pct: 12, label: 'Pinning metadata to IPFS…' })
+    try {
+      const meta = await fetch(API + '/api/pump/metadata', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: f.name, symbol: f.symbol, description: f.description, imageUrl, socials: { twitter: f.twitter, telegram: f.telegram, website: f.website } }),
+      }).then((r) => r.json())
+      if (!meta.uri) throw new Error(meta.error || 'metadata pin failed')
+
+      const mintKeypair = Keypair.generate()
+      setLx((l) => ({ ...l, pct: 35, label: 'Building pump.fun transaction…' }))
+      const devBuy = Number(f.initialBuySol) > 0 ? Number(f.initialBuySol) : 0
+      const resp = await fetch('https://pumpportal.fun/api/trade-local', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          publicKey: solana,
+          action: 'create',
+          tokenMetadata: { name: f.name, symbol: f.symbol, uri: meta.uri },
+          mint: mintKeypair.publicKey.toBase58(),
+          denominatedInSol: 'true',
+          amount: devBuy,
+          slippage: 10,
+          priorityFee: 0.00005,
+          pool: 'pump',
+        }),
+      })
+      if (!resp.ok) throw new Error('pump.fun error ' + resp.status + ' — ' + (await resp.text()).slice(0, 120))
+      const buf = new Uint8Array(await resp.arrayBuffer())
+      const tx = VersionedTransaction.deserialize(buf)
+      tx.sign([mintKeypair]) // the new mint account co-signs
+      setLx((l) => ({ ...l, pct: 62, label: 'Approve in Phantom…' }))
+      const conn = new Connection(SOLANA_RPC)
+      const sig = await primaryWallet.sendTransaction(tx, conn)
+      const mint = mintKeypair.publicKey.toBase58()
+      setLx((l) => ({ ...l, active: true, done: true, pct: 100, txHash: sig, address: mint, symbol: f.symbol, solana: true }))
+    } catch (e) {
+      setLx((l) => ({ ...l, done: true, error: e.message || String(e) }))
+    }
+  }
+
   return (
     <div className="main">
       <main className="hl-main">
         <section className="hl-card">
           <div className="hl-head"><h2 className="hl-title">Launch a coin</h2><span className="hl-pill">LIVE</span></div>
-          <p className="hl-sub">Deploy on Robinhood Chain — pay straight from your Solana wallet</p>
+          <p className="hl-sub">{chain === 'solana' ? 'Launch on pump.fun — signed from your Phantom wallet' : 'Deploy on Robinhood Chain — pay straight from your Solana wallet'}</p>
+
+          <div className="lc-chain">
+            <button className={chain === 'robinhood' ? 'on' : ''} onClick={() => setChain('robinhood')}>Robinhood Chain</button>
+            <button className={chain === 'solana' ? 'on' : ''} onClick={() => setChain('solana')}>Solana · pump.fun</button>
+          </div>
 
           <label className="hl-label">Logo Image <span className="hl-req">*</span></label>
           <div className="hl-uploadrow">
@@ -133,8 +186,8 @@ export default function Launch({ auth }) {
           <input className="hl-input" type="number" min="0" step="0.01" value={f.initialBuySol} onChange={set('initialBuySol')} placeholder="0.0" />
           <div className="hl-fieldnote">Optional — buy your own coin in the same transaction, paid in SOL.</div>
 
-          <div className="hl-fee">LP locked forever · fees claimable as SOL · Est. bridge time: <b>~2s</b></div>
-          <button className="hl-cta" onClick={launch}>{authenticated ? 'Launch Coin' : 'Log in to Launch'}</button>
+          <div className="hl-fee">{chain === 'solana' ? <>Launches on <b>pump.fun</b> · bonding curve · shows on Axiom</> : <>LP locked forever · fees claimable as SOL · Est. bridge time: <b>~2s</b></>}</div>
+          <button className="hl-cta" onClick={chain === 'solana' ? launchSolana : launch}>{!authenticated ? 'Log in to Launch' : chain === 'solana' ? 'Launch on pump.fun' : 'Launch Coin'}</button>
           <div className={'hl-status ' + statusCls}>{status}</div>
         </section>
         <aside className="hl-side">
@@ -163,11 +216,20 @@ export default function Launch({ auth }) {
               <>
                 <div className="lx-logo lx-logo-live">{imageUrl ? <img src={imageUrl} alt="" /> : (lx.symbol || '?')[0].toUpperCase()}</div>
                 <div className="lx-title">🚀 {lx.symbol} is live!</div>
-                {lx.txHash && <a className="lx-tx" href={EXPLORER + '/tx/' + lx.txHash} target="_blank" rel="noopener">{shortHash(lx.txHash)} ↗</a>}
-                {lx.address ? (
-                  <button className="lx-btn" onClick={() => navigate('/coin/' + lx.address)}>View your coin →</button>
+                {lx.solana ? (
+                  <>
+                    {lx.txHash && <a className="lx-tx" href={'https://solscan.io/tx/' + lx.txHash} target="_blank" rel="noopener">{shortHash(lx.txHash)} ↗</a>}
+                    <button className="lx-btn" onClick={() => window.open('https://pump.fun/' + lx.address, '_blank')}>View on pump.fun →</button>
+                  </>
                 ) : (
-                  <div className="lx-stage">Indexing — it’ll appear in the feed shortly.</div>
+                  <>
+                    {lx.txHash && <a className="lx-tx" href={EXPLORER + '/tx/' + lx.txHash} target="_blank" rel="noopener">{shortHash(lx.txHash)} ↗</a>}
+                    {lx.address ? (
+                      <button className="lx-btn" onClick={() => navigate('/coin/' + lx.address)}>View your coin →</button>
+                    ) : (
+                      <div className="lx-stage">Indexing — it’ll appear in the feed shortly.</div>
+                    )}
+                  </>
                 )}
               </>
             )}
