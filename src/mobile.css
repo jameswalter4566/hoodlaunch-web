@@ -1,0 +1,114 @@
+/* ============================================================
+   Mobile / responsive layer — loaded last so it overrides.
+   Desktop is a sidebar + main flex row with fixed-width panels;
+   on phones we collapse the sidebar into a bottom tab bar and
+   stack every multi-column layout into a single scrollable column.
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* ---- shell: sidebar -> bottom tab bar, main full width ----
+     NOTE: selectors are body.app-sky-prefixed to beat the desktop
+     `body.app-sky .sb { position:relative; height:calc(100vh-20px) }`
+     rule (2-class specificity) — a plain `.sb` override would lose. */
+  body { display: block !important; }
+  body.app-sky, body.app-sky #root { display: block !important; height: auto; }
+
+  body.app-sky .sb,
+  body.app-sky.sb-min .sb {
+    position: fixed !important; top: auto !important; bottom: 0; left: 0; right: 0;
+    width: 100%; height: 56px !important; min-height: 56px; flex: none; flex-basis: auto;
+    flex-direction: row; align-items: stretch;
+    padding: 0; border-right: none; border-top: 1px solid var(--line);
+    background: var(--bg2); z-index: 200; overflow: visible;
+    transition: none;
+  }
+  .sb-top, .sb-create, body.sb-min .sb-create, body.sb-min .sb-toggle { display: none; }
+  body.app-sky .sb-nav, body.app-sky.sb-min .sb-nav {
+    flex-direction: row; width: 100%; height: 100%; margin: 0; gap: 0; overflow: visible;
+  }
+  body.app-sky .sb-nav a, body.app-sky.sb-min .sb-nav a {
+    flex: 1; min-width: 0; flex-direction: column; justify-content: center; align-items: center;
+    gap: 3px; padding: 5px 0; font-size: 9px; border-radius: 0; height: 100%;
+  }
+  .sb-nav a span, body.sb-min .sb-nav a span {
+    display: block; font-size: 8.5px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  }
+  .sb-nav a svg { flex: 0 0 20px; width: 20px; height: 20px; }
+  /* the "Advanced" external link and its arrow just crowd the bar */
+  .sb-nav a[target="_blank"] svg:last-child { display: none; }
+
+  body.app-sky .main { width: 100%; min-width: 0; height: auto !important; padding-bottom: 64px; }
+
+  /* auth button (fixed top-right) — keep it above content, tappable */
+  .authbtn, .ab-wrap, [class*="auth"] { z-index: 150; }
+
+  /* ---- generic: any fixed-height terminal becomes page-scroll ---- */
+  .tk-wrap { height: auto; min-height: 100vh; overflow: visible; }
+
+  /* ============ LAUNCH page ============ */
+  .hl-main { flex-direction: column; padding: 14px !important; gap: 16px; }
+  .hl-card { padding: 16px !important; }
+  .hl-grid2 { grid-template-columns: 1fr; gap: 12px; }
+  .hl-side { flex: none; width: 100%; position: static; top: auto; }
+  .hl-title { font-size: 20px; }
+  .lc-chain { flex-wrap: wrap; }
+  .fee-modes { gap: 7px; }
+  .hl-uploadrow { flex-wrap: wrap; }
+
+  /* pre-launch bundle wallets: let rows wrap instead of clipping */
+  .aw-row { flex-wrap: wrap; gap: 7px; }
+  .aw-pair { flex-basis: 100%; order: 2; }
+  .aw-amt { margin-left: 0; }
+
+  /* ============ PULSE terminal (3 cols -> stacked) ============ */
+  .pl-topbar { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .pl-board { flex-direction: column; overflow-y: visible; }
+  .pl-col { flex: none; width: 100%; border-right: none; border-bottom: 1px solid var(--line); }
+  .pl-col-body { max-height: 78vh; }
+  .pl-right { align-items: flex-end; }
+
+  /* ============ TOKEN page (list | chart | trade) -> stacked ============ */
+  .tk-topbar { position: sticky; top: 0; z-index: 20; background: var(--bg); }
+  .tk-search { width: 100%; max-width: 100%; }
+  .tk-layout { flex-direction: column; }
+  .tk-center { order: 1; min-height: 62vh; }
+  .tk-trade { order: 2; flex: none; width: 100%; border-left: none; border-top: 1px solid var(--line); }
+  .tk-list { order: 3; flex: none; width: 100%; border-right: none; border-top: 1px solid var(--line); max-height: 46vh; }
+  .tk-chart { min-height: 240px; }
+  .tk-stats { flex-wrap: wrap; gap: 10px 16px; }
+  .tk-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .tk-table-wrap { overflow-x: auto; }
+
+  /* ============ LEADERBOARD ============ */
+  .lb-wrap { padding: 14px !important; }
+  .lb-row { gap: 10px; padding: 11px 12px; flex-wrap: wrap; }
+  .lb-stat { font-size: 12px; }
+  .lb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ============ PROFILE ============ */
+  .pf2-head { flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; }
+  .pf2-chips { flex-wrap: wrap; }
+  .pf2-row { flex-wrap: wrap; gap: 8px; }
+  .pf2-list, .pf2-panel { overflow-x: hidden; }
+  .pf2-wallet { flex-wrap: wrap; }
+
+  /* ============ LANDING ============ */
+  .ld-h1 { font-size: clamp(26px, 8vw, 40px); line-height: 1.15; }
+  .ld-frame { max-width: 100%; }
+  .ld-frame-body { flex-direction: column; min-height: auto; }
+  .ld-frame-top { flex-wrap: wrap; gap: 8px; }
+  .ld-frame-right { margin-left: 0; }
+  .ld-lf { width: 100%; max-width: 100%; }
+  .ld-lf-row { flex-direction: column; }
+  .ld-badges { flex-wrap: wrap; }
+  .ld-cta { flex-wrap: wrap; }
+}
+
+/* extra squeeze for small phones */
+@media (max-width: 460px) {
+  .sb-nav a span, body.sb-min .sb-nav a span { font-size: 8px; }
+  .hl-main, .lb-wrap { padding: 10px !important; }
+  .tk-stats .tk-stat span { font-size: 9px; }
+  .pl-col-body { max-height: 72vh; }
+  .aw-strip, .aw-rows { font-size: 12px; }
+}

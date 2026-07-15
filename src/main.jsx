@@ -7,6 +7,7 @@ import { defineChain } from 'viem'
 import App from './App.jsx'
 import '../styles.css'
 import './app.css'
+import './mobile.css'
 
 // Robinhood Chain — the embedded EVM wallet transacts here (holds the user's
 // bought tokens, signs sells). Users still LOG IN with Phantom (Solana); the
