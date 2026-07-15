@@ -45,6 +45,37 @@ body.app-sky #sky-bg { display: block; }
 .br-to { font-family: ui-monospace, monospace; font-size: 15px; color: var(--txt); margin-top: 6px; }
 .br-status { font-size: 12px; color: var(--txt2); margin-top: 10px; text-align: center; min-height: 16px; }
 
+/* ---- admin launch monitor ---- */
+.adm-gate { display: flex; align-items: center; justify-content: center; min-height: 80vh; }
+.adm-pin { background: rgba(16,15,24,0.9); border: 1px solid var(--line2); border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 12px; width: 260px; backdrop-filter: blur(18px); }
+.adm-pin-t { font-weight: 800; text-align: center; }
+.adm-pin input { text-align: center; letter-spacing: 10px; font-size: 22px; background: var(--card); border: 1px solid var(--line2); border-radius: 10px; padding: 12px; color: var(--txt); font-family: inherit; outline: none; }
+.adm-pin input:focus { border-color: var(--green); }
+.adm-pin button { border: none; border-radius: 999px; background: var(--grad); color: #08130a; font-family: inherit; font-weight: 800; padding: 11px; cursor: pointer; }
+.adm-wrap { max-width: 1100px; margin: 0 auto; padding: 22px 20px 60px; }
+.adm-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.adm-head h1 { font-size: 22px; font-weight: 800; }
+.adm-head-r { display: flex; gap: 10px; align-items: center; }
+.adm-launch { border-radius: 999px; background: var(--grad); color: #08130a; font-weight: 800; font-size: 13px; padding: 9px 16px; text-decoration: none; }
+.adm-out { border: 1px solid var(--line2); background: none; color: var(--txt2); border-radius: 999px; padding: 8px 14px; font-family: inherit; font-size: 12.5px; cursor: pointer; }
+.adm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.adm-stat { background: rgba(16,15,24,0.86); border: 1px solid var(--line); border-radius: 14px; padding: 15px 18px; display: flex; flex-direction: column; gap: 4px; backdrop-filter: blur(18px); }
+.adm-stat span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--txt3); }
+.adm-stat b { font-size: 21px; font-weight: 800; }
+.adm-panel { background: rgba(16,15,24,0.86); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; backdrop-filter: blur(18px); }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th { text-align: left; padding: 12px 14px; font-size: 10.5px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--txt3); border-bottom: 1px solid var(--line); }
+.adm-table td { padding: 11px 14px; border-bottom: 1px solid var(--line); }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table .up { color: var(--green); } .adm-table .down { color: #f6465d; }
+.adm-tok { display: flex; align-items: center; gap: 10px; }
+.adm-img { width: 30px; height: 30px; border-radius: 8px; background: var(--card2); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--green); overflow: hidden; font-size: 12px; }
+.adm-img img { width: 100%; height: 100%; object-fit: cover; }
+.adm-tok b { font-weight: 800; } .adm-tok span { display: block; font-size: 11px; color: var(--txt3); font-family: ui-monospace, monospace; }
+.adm-links { display: flex; gap: 10px; } .adm-links a { color: var(--green); text-decoration: none; font-weight: 700; font-size: 12px; }
+.adm-empty { text-align: center; color: var(--txt3); padding: 40px 0; }
+@media (max-width: 720px) { .adm-stats { grid-template-columns: repeat(2, 1fr); } }
+
 .hl-authbtn { display: inline-flex; align-items: center; gap: 7px; color: #fff; }
 .hl-authbtn.on { color: #fff; }
 .hl-auth-av { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
