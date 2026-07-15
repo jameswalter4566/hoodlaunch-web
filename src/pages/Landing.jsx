@@ -23,12 +23,20 @@ export default function Landing({ auth }) {
     return () => { alive = false }
   }, [])
 
+  // Landing preview chart always shows a real, active token ($bull) so it's never
+  // empty — chain-wide pulse tokens aren't candle-indexed on the public RPC.
+  const DEMO = '0x782b89f4c198c5c4e6c30ef6ea2b102068273840'
   useEffect(() => {
-    if (view !== 'markets' || !chartRef.current || seriesRef.current || !top[0]) return
-    const chart = createChart(chartRef.current, { layout: { background: { color: 'transparent' }, textColor: '#9899a3', fontFamily: 'Manrope' }, grid: { vertLines: { color: '#15141f' }, horzLines: { color: '#15141f' } }, timeScale: { timeVisible: true, borderColor: '#1f1e2c' }, rightPriceScale: { borderColor: '#1f1e2c' }, autoSize: true })
+    if (view !== 'markets' || !chartRef.current || seriesRef.current) return
+    const chart = createChart(chartRef.current, { layout: { background: { color: 'transparent' }, textColor: '#9899a3', fontFamily: 'Manrope' }, grid: { vertLines: { color: '#15141f' }, horzLines: { color: '#15141f' } }, timeScale: { timeVisible: true, borderColor: '#1f1e2c', barSpacing: 7, minBarSpacing: 4, rightOffset: 6 }, rightPriceScale: { borderColor: '#1f1e2c' }, autoSize: true })
     seriesRef.current = chart.addCandlestickSeries({ upColor: '#21c95e', downColor: '#f6465d', wickUpColor: '#21c95e', wickDownColor: '#f6465d', borderVisible: false, priceFormat: { type: 'price', precision: 8, minMove: 0.00000001 } })
-    fetch(API + '/api/tokens/' + top[0].token + '/candles?interval=300&limit=200').then((r) => r.json()).then((rows) => rows.length && seriesRef.current.setData(rows.reverse().map((r) => ({ time: Number(r.t), open: Number(r.o), high: Number(r.h), low: Number(r.l), close: Number(r.c) }))))
-  }, [view, top])
+    fetch(API + '/api/tokens/' + DEMO + '/candles?interval=300&limit=200').then((r) => r.json()).then((rows) => {
+      if (!Array.isArray(rows) || !rows.length) return
+      const data = rows.map((r) => ({ time: Number(r.t), open: Number(r.o), high: Number(r.h), low: Number(r.l), close: Number(r.c) })).sort((a, b) => a.time - b.time)
+      seriesRef.current.setData(data)
+      chart.timeScale().scrollToRealTime()
+    })
+  }, [view])
 
   const Mkt = (t) => (
     <a className="ld-mkt" key={t.token} onClick={() => nav('/coin/' + t.token)}>
@@ -59,7 +67,7 @@ export default function Landing({ auth }) {
         <div className="ld-frame">
           <div className="ld-frame-top"><span className="ld-frame-brand"><img src="/logo.png" alt="" />bullish</span><span className="ld-frame-right"><span>PORTFOLIO</span><b>$12,480</b></span></div>
           {view === 'markets' && (
-            <div className="ld-frame-body"><div className="ld-mkts">{top.map(Mkt)}</div><div className="ld-chart-wrap"><div className="ld-chart-head">{top[0] ? <><b>{top[0].symbol}</b> /WETH · {usd(top[0].fdvUsd / (eth || 1), eth)} MC</> : 'Loading…'}</div><div className="ld-chart" ref={chartRef} /></div></div>
+            <div className="ld-frame-body"><div className="ld-mkts">{top.map(Mkt)}</div><div className="ld-chart-wrap"><div className="ld-chart-head"><b>bull</b> /WETH · live</div><div className="ld-chart" ref={chartRef} /></div></div>
           )}
           {view === 'pulse' && (
             <div className="ld-frame-body">

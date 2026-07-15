@@ -66,7 +66,10 @@ export default function Token({ auth }) {
     const chart = createChart(chartRef.current, {
       layout: { background: { color: 'transparent' }, textColor: '#9899a3', fontFamily: 'Manrope' },
       grid: { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
-      timeScale: { timeVisible: true, borderColor: '#1f1e2c' }, rightPriceScale: { borderColor: '#1f1e2c' }, autoSize: true,
+      // fixed barSpacing = consistent candle width/gap everywhere (Axiom-like),
+      // independent of how many candles a token has.
+      timeScale: { timeVisible: true, borderColor: '#1f1e2c', barSpacing: 7, minBarSpacing: 4, rightOffset: 6 },
+      rightPriceScale: { borderColor: '#1f1e2c' }, autoSize: true,
     })
     chartApiRef.current = chart
     seriesRef.current = chart.addCandlestickSeries({ upColor: '#21c95e', downColor: '#f6465d', wickUpColor: '#21c95e', wickDownColor: '#f6465d', borderVisible: false, priceFormat: { type: 'price', precision: 8, minMove: 0.00000001 } })
@@ -80,7 +83,7 @@ export default function Token({ auth }) {
         .map((r) => ({ time: Number(r.t), open: r.o * (eth || 1), high: r.h * (eth || 1), low: r.l * (eth || 1), close: r.c * (eth || 1) }))
         .sort((a, b) => a.time - b.time)
       seriesRef.current.setData(data)
-      chartApiRef.current?.timeScale().fitContent()
+      chartApiRef.current?.timeScale().scrollToRealTime()
     })
   }, [address, eth, token])
 
