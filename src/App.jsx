@@ -70,7 +70,7 @@ export default function App() {
         <Route path="/launch" element={<Launch auth={auth} />} />
         <Route path="/profile" element={<Profile auth={auth} />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<Admin auth={auth} />} />
         <Route path="*" element={<Pulse />} />
       </Routes>
     </>

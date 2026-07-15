@@ -74,6 +74,9 @@ body.app-sky #sky-bg { display: block; }
 .adm-tok b { font-weight: 800; } .adm-tok span { display: block; font-size: 11px; color: var(--txt3); font-family: ui-monospace, monospace; }
 .adm-links { display: flex; gap: 10px; } .adm-links a { color: var(--green); text-decoration: none; font-weight: 700; font-size: 12px; }
 .adm-empty { text-align: center; color: var(--txt3); padding: 40px 0; }
+/* the embedded 1:1 launch form inside the admin page (neutralize its own .main) */
+.adm-launchbox { margin: 4px 0 22px; }
+.adm-launchbox > .main { padding: 0; min-height: 0; }
 @media (max-width: 720px) { .adm-stats { grid-template-columns: repeat(2, 1fr); } }
 
 .hl-authbtn { display: inline-flex; align-items: center; gap: 7px; color: #fff; }

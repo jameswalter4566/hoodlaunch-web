@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { API, EXPLORER, usd, ethUsd, fmtAge, shortAddr } from '../api'
+import Launch from './Launch.jsx'
 
-// Private admin dashboard — a read-only monitor of every launch. PIN-gated on the
-// client for now (no backend logic yet); just the UI panel.
-const PIN = '4566'
-
-export default function Admin() {
+// Private admin dashboard: PIN gate (validated server-side via ADMIN_PIN — the PIN
+// never ships in the bundle), a 1:1 launch form, and a read-only launch monitor.
+export default function Admin({ auth }) {
   const [authed, setAuthed] = useState(sessionStorage.getItem('adm') === '1')
   const [entry, setEntry] = useState('')
   const [rows, setRows] = useState([])
@@ -27,10 +26,12 @@ export default function Admin() {
     return () => { alive = false; clearInterval(i) }
   }, [authed])
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault()
-    if (entry === PIN) { sessionStorage.setItem('adm', '1'); setAuthed(true) }
-    else setEntry('')
+    try {
+      const r = await fetch(API + '/api/admin/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: entry }) }).then((x) => x.json())
+      if (r.ok) { sessionStorage.setItem('adm', '1'); setAuthed(true) } else setEntry('')
+    } catch { setEntry('') }
   }
 
   if (!authed) return (
@@ -57,6 +58,9 @@ export default function Admin() {
             <button className="adm-out" onClick={() => { sessionStorage.removeItem('adm'); setAuthed(false) }}>Lock</button>
           </div>
         </div>
+
+        {/* 1:1 launch form */}
+        <div className="adm-launchbox"><Launch auth={auth} /></div>
 
         <div className="adm-stats">
           <div className="adm-stat"><span>Launches</span><b>{rows.length}</b></div>
