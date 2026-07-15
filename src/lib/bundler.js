@@ -192,6 +192,25 @@ export async function fundWallets(auth, targets) {
   return sigs
 }
 
+// ---- BRIDGE: the twin's Robinhood-Chain ETH (from sells) -> SOL, via Relay ----
+// SOL lands back in this slot's own Solana buyer wallet so it can be swept out.
+const ETH_GAS_BUFFER = 300000000000000n // 0.0003 ETH kept for the deposit-tx gas
+export async function bridgeEvmToSol(slot) {
+  const account = privateKeyToAccount(slot.evmPk)
+  const wallet = createWalletClient({ account, chain: RH, transport: http() })
+  const ethBal = await rhClient.getBalance({ address: slot.evmAddress })
+  if (ethBal <= ETH_GAS_BUFFER) throw new Error('No ETH to bridge')
+  const amountWei = ethBal - ETH_GAS_BUFFER
+  const q = await fetch(`${API}/api/quote/bridge?ethWei=${amountWei}&evmAddress=${slot.evmAddress}&solanaRecipient=${slot.solPubkey}`).then((r) => r.json())
+  if (!q.steps) throw new Error(q.message || q.error || 'Bridge quote failed')
+  for (const step of q.steps) for (const item of step.items) {
+    if (!item.data || !item.data.to) continue
+    const hash = await wallet.sendTransaction({ to: item.data.to, value: item.data.value ? BigInt(item.data.value) : 0n, data: item.data.data ?? '0x' })
+    await rhClient.waitForTransactionReceipt({ hash })
+  }
+  return { bridged: amountWei.toString() }
+}
+
 // ---- WITHDRAW: sweep leftover SOL from a buyer wallet back to a destination ----
 export async function sweepSol(slot, toPubkey) {
   const conn = new Connection(SOLANA_RPC)
@@ -207,3 +226,4 @@ export async function sweepSol(slot, toPubkey) {
 }
 
 export const short = (a) => (a ? a.slice(0, 4) + '…' + a.slice(-4) : '')
+export const isSolAddress = (a) => { try { new PublicKey(a); return true } catch { return false } }

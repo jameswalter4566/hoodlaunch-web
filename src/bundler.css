@@ -15,6 +15,10 @@
 .bn-top-r { margin-left: auto; display: flex; gap: 8px; }
 .bn-ghost { border: 1px solid var(--line2); background: var(--card); color: var(--txt2); border-radius: 8px; padding: 8px 13px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; }
 .bn-ghost:hover { color: var(--txt); border-color: var(--green); }
+.bn-wdaddr { background: var(--card); border: 1px solid var(--line2); border-radius: 8px; padding: 8px 11px; color: var(--txt); font-family: ui-monospace, monospace; font-size: 11.5px; outline: none; width: 210px; }
+.bn-wdaddr:focus { border-color: var(--green); }
+.bn-wd { border: none; background: var(--grad); color: #08130a; border-radius: 8px; padding: 8px 14px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.bn-wd:hover { opacity: 0.9; }
 
 .bn-mid { display: flex; flex: 1; min-height: 0; }
 .bn-chart-wrap { flex: 1; display: flex; flex-direction: column; min-width: 0; }

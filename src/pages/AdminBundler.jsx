@@ -29,6 +29,10 @@ function Bundler({ auth }) {
   const [importText, setImportText] = useState('')
   const [showImport, setShowImport] = useState(false)
   const [fundSol, setFundSol] = useState('0.1')
+  const [withdrawAddr, setWithdrawAddr] = useState('')
+
+  // default the withdraw destination to the connected Phantom (editable)
+  useEffect(() => { if (auth.solana) setWithdrawAddr((a) => a || auth.solana) }, [auth.solana])
 
   const persist = (next) => { setSlots(next); B.saveSlots(next) }
 
@@ -105,13 +109,26 @@ function Bundler({ auth }) {
     catch (e) { flash('⚠️ Dev sell: ' + (e.message || e)) }
     mark('dev', null); refresh()
   }
+  async function doBridge(slot) {
+    mark(slot.id, 'bridging')
+    try { await B.bridgeEvmToSol(slot); flash('✅ Bridged ' + B.short(slot.evmAddress) + ' ETH → SOL') }
+    catch (e) { flash('⚠️ Bridge ' + B.short(slot.evmAddress) + ': ' + (e.message || e)) }
+    mark(slot.id, null); refresh()
+  }
+  async function bridgeAll() {
+    const list = B.loadSlots()
+    if (!list.length) return
+    flash('Bridging ETH → SOL on ' + list.length + ' wallets…')
+    for (const s of list) await doBridge(s) // serial — each is a cross-chain fill
+    flash('Bridged all wallets · ETH → SOL')
+  }
 
-  // aggregate across all slots (with a tiny stagger so it isn't N identical simultaneous txs)
-  async function buyAll(solAmount) {
+  // aggregate buy — fire every wallet AT ONCE (independent Solana wallets, safe parallel)
+  function buyAll(solAmount) {
     const list = B.loadSlots()
     if (!list.length) return flash('No wallets — create some first')
     flash('Buying from ' + list.length + ' wallets…')
-    for (const s of list) { doBuy(s, solAmount); await new Promise((r) => setTimeout(r, 350 + Math.random() * 500)) }
+    list.forEach((s) => doBuy(s, solAmount))
   }
   // Sells are serialized on purpose: each one triggers a gas top-up from the single
   // treasury wallet, so firing them in parallel would collide on the treasury nonce.
@@ -149,11 +166,12 @@ function Bundler({ auth }) {
     catch (e) { flash('⚠️ Fund: ' + (e.message || e)) }
   }
   async function withdrawAll() {
-    if (!auth.solana) return flash('Connect Phantom to receive the SOL')
-    if (!confirm('Sweep leftover SOL from all wallets back to your Phantom?')) return
+    const dest = (withdrawAddr || '').trim()
+    if (!B.isSolAddress(dest)) return flash('Enter a valid destination SOL address')
+    if (!confirm('Sweep ALL SOL from every wallet to ' + dest + ' ?')) return
     let n = 0
-    for (const s of slots) { try { if (await B.sweepSol(s, auth.solana)) n++ } catch { /* skip empty */ } }
-    flash('Swept ' + n + ' wallets to Phantom'); setTimeout(refresh, 4000)
+    for (const s of B.loadSlots()) { try { if (await B.sweepSol(s, dest)) n++ } catch { /* skip empty */ } }
+    flash('Swept ' + n + ' wallets → ' + B.short(dest)); setTimeout(refresh, 4000)
   }
 
   // ---- derived ----
@@ -195,7 +213,9 @@ function Bundler({ auth }) {
         </div>
         <div className="bn-top-r">
           <Link className="bn-ghost" to={'/coin/' + address}>Public page ↗</Link>
-          <button className="bn-ghost" onClick={withdrawAll} title="Sweep leftover SOL from all wallets to your Phantom">Withdraw SOL</button>
+          <button className="bn-ghost" onClick={bridgeAll} title="Bridge every wallet's ETH back to SOL">Bridge all → SOL</button>
+          <input className="bn-wdaddr" value={withdrawAddr} onChange={(e) => setWithdrawAddr(e.target.value)} placeholder="Withdraw SOL to… (address)" />
+          <button className="bn-wd" onClick={withdrawAll} title="Sweep all SOL from every wallet to the address">Withdraw all SOL</button>
         </div>
       </div>
 
@@ -305,6 +325,7 @@ function Bundler({ auth }) {
                     <td className="c"><BuyPresets s={s} /></td>
                     <td className="c"><SellPresets s={s} /></td>
                     <td className="bn-actions">
+                      <button title="Bridge this wallet's ETH → SOL (into its own buyer)" disabled={busy[s.id]} onClick={() => doBridge(s)}>⇄</button>
                       <button title="Export keys" onClick={() => exportKeys(s)}>🔑</button>
                       <button title="Remove" onClick={() => removeSlot(s.id)}>✕</button>
                     </td>

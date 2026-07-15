@@ -35,10 +35,9 @@ const WalletStrip = forwardRef(function WalletStrip(_props, ref) {
     async fire(tokenAddress) {
       const targets = B.loadSlots().filter((s) => Number(s.snipeSol) > 0)
       setSnipe(Object.fromEntries(targets.map((s) => [s.id, 'buying'])))
-      // small stagger so it isn't N identical simultaneous buys
-      await Promise.all(targets.map((s, i) =>
-        new Promise((r) => setTimeout(r, i * 400))
-          .then(() => B.buy(s, tokenAddress, Number(s.snipeSol)))
+      // fire ALL buys at once — no stagger, every wallet hits the block ASAP
+      await Promise.all(targets.map((s) =>
+        B.buy(s, tokenAddress, Number(s.snipeSol))
           .then(() => setSnipe((x) => ({ ...x, [s.id]: 'ok' })))
           .catch(() => setSnipe((x) => ({ ...x, [s.id]: 'fail' }))),
       ))
@@ -61,7 +60,11 @@ const WalletStrip = forwardRef(function WalletStrip(_props, ref) {
           <div className={'aw-row' + cls(s)} key={s.id}>
             <button className={'aw-copy' + (copied === s.id ? ' ok' : '')} title="Copy Solana address to fund with SOL" onClick={() => copyFund(s)}>{copied === s.id ? '✓' : '⧉'}</button>
             <span className="aw-idx">{i + 1}</span>
-            <span className="aw-addr" title={'buyer ' + s.solPubkey + ' → holder ' + s.evmAddress}>{B.short(s.solPubkey)}</span>
+            <span className="aw-pair">
+              <span className="aw-sol" title={'Solana buyer ' + s.solPubkey}>SOL {B.short(s.solPubkey)}</span>
+              <span className="aw-arrow">→</span>
+              <span className="aw-evm" title={'EVM holder/seller ' + s.evmAddress}>ETH {B.short(s.evmAddress)}</span>
+            </span>
             <span className="aw-bal"><b>{bal[s.id] == null ? '—' : bal[s.id].toFixed(3)}</b> SOL</span>
             <div className="aw-amt"><input type="number" min="0" step="0.01" value={s.snipeSol} onChange={(e) => setAmt(s.id, e.target.value)} placeholder="0.0" /><span>SOL snipe</span></div>
             <button className="aw-rm" title="Remove" onClick={() => remove(s.id)}>✕</button>
