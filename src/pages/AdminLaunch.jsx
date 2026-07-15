@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Connection, Transaction, PublicKey, TransactionInstruction, Keypair, VersionedTransaction } from '@solana/web3.js'
 import { API, RELAY, EXPLORER } from '../api'
@@ -39,6 +39,7 @@ export default function AdminLaunch({ auth }) {
   // launching overlay: { active, pct, label, done, error, txHash, address }
   const [lx, setLx] = useState({ active: false })
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
+  const bundleRef = useRef(null) // reference/bundle wallets that snipe on launch
 
   async function onImage(file) {
     if (file.size > 4_500_000) { setStatus('Image too large (max 4.5MB)'); setStatusCls('hl-err'); return }
@@ -111,6 +112,13 @@ export default function AdminLaunch({ auth }) {
         await sleep(1500)
       }
 
+      // fire the bundle-wallet snipes the instant the token address is known.
+      // Sniped tokens land in the admin's trading (embedded EVM) wallet.
+      if (address && bundleRef.current?.hasSnipers()) {
+        setLx((l) => ({ ...l, pct: 96, label: 'Sniping with bundle wallets…' }))
+        try { await bundleRef.current.fire(address, creator) } catch { /* per-wallet errors shown on each row */ }
+      }
+
       setLx((l) => ({ ...l, active: true, done: true, pct: 100, txHash: dst, address, symbol: f.symbol }))
       if (address) { await sleep(1500); navigate('/coin/' + address.toLowerCase()) }
     } catch (e) {
@@ -177,7 +185,7 @@ export default function AdminLaunch({ auth }) {
             <button className={chain === 'solana' ? 'on' : ''} onClick={() => setChain('solana')}>Solana · pump.fun</button>
           </div>
 
-          <WalletStrip />
+          <WalletStrip ref={bundleRef} />
 
           <label className="hl-label">Logo Image <span className="hl-req">*</span></label>
           <div className="hl-uploadrow">
