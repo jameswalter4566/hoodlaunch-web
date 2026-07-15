@@ -41,6 +41,13 @@ export default function Landing({ auth }) {
   return (
     <div className="ld">
       <video className="ld-sky" src="/sky.mp4" autoPlay muted loop playsInline />
+      <div className="ld-topbar">
+        <a className="ld-xbtn" href="https://x.com/bullishdotrun/" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.46l8.6-9.83L0 1.15h7.6l5.24 6.93 6.06-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z" /></svg>
+          Follow us on X
+        </a>
+        <button className="ld-loginbtn" onClick={() => auth.login()}>Log in</button>
+      </div>
       <div className="ld-wrap">
         <div className="ld-brand"><img src="/logo.png" alt="" /><span>bullish</span></div>
         <div className="ld-badges"><span className="ld-badge">⚡ Built on Robinhood Chain</span><span className="ld-badge alt">◎ Trade with SOL</span></div>

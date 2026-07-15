@@ -41,6 +41,7 @@ export default function Token({ auth }) {
   }, [])
   const chartRef = useRef(null)
   const seriesRef = useRef(null)
+  const chartApiRef = useRef(null)
 
   useEffect(() => {
     let alive = true
@@ -57,21 +58,29 @@ export default function Token({ auth }) {
     return () => { alive = false; clearInterval(i) }
   }, [address])
 
+  // Create the chart once the token has loaded and the container div is mounted.
+  // (Depending on [token], not [], because on first render token is null and the
+  // chart div isn't rendered yet — so an []-effect would never create it.)
   useEffect(() => {
-    if (!chartRef.current || seriesRef.current) return
+    if (!token || !chartRef.current || seriesRef.current) return
     const chart = createChart(chartRef.current, {
       layout: { background: { color: 'transparent' }, textColor: '#9899a3', fontFamily: 'Manrope' },
       grid: { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
       timeScale: { timeVisible: true, borderColor: '#1f1e2c' }, rightPriceScale: { borderColor: '#1f1e2c' }, autoSize: true,
     })
+    chartApiRef.current = chart
     seriesRef.current = chart.addCandlestickSeries({ upColor: '#21c95e', downColor: '#f6465d', wickUpColor: '#21c95e', wickDownColor: '#f6465d', borderVisible: false, priceFormat: { type: 'price', precision: 8, minMove: 0.00000001 } })
-  }, [])
+  }, [token])
 
   useEffect(() => {
     if (!seriesRef.current) return
     fetch(API + '/api/tokens/' + address + '/candles?interval=300&limit=300').then((r) => r.json()).then((rows) => {
-      if (!rows.length) return
-      seriesRef.current.setData(rows.reverse().map((r) => ({ time: Number(r.t), open: r.o * (eth || 1), high: r.h * (eth || 1), low: r.l * (eth || 1), close: r.c * (eth || 1) })))
+      if (!Array.isArray(rows) || !rows.length) return
+      const data = rows
+        .map((r) => ({ time: Number(r.t), open: r.o * (eth || 1), high: r.h * (eth || 1), low: r.l * (eth || 1), close: r.c * (eth || 1) }))
+        .sort((a, b) => a.time - b.time)
+      seriesRef.current.setData(data)
+      chartApiRef.current?.timeScale().fitContent()
     })
   }, [address, eth, token])
 

@@ -133,3 +133,11 @@ body.app-sky #sky-bg { display: block; }
 .tk-head-socials { display: inline-flex; gap: 8px; flex-wrap: wrap; margin-left: 10px; }
 .tk-head-socials a { display: inline-flex; align-items: center; gap: 5px; background: var(--card); border: 1px solid var(--line2); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--txt2); text-decoration: none; }
 .tk-head-socials a:hover { border-color: var(--green); color: var(--txt); }
+
+/* landing top-right actions: Follow us on X + Log in */
+.ld-topbar { position: fixed; top: 16px; right: 20px; z-index: 30; display: flex; align-items: center; gap: 10px; }
+.ld-xbtn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; backdrop-filter: blur(12px); transition: background 0.15s; }
+.ld-xbtn:hover { background: rgba(255,255,255,0.16); }
+.ld-loginbtn { padding: 9px 20px; border-radius: 999px; background: var(--grad); color: #08130a; border: none; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.ld-loginbtn:hover { filter: brightness(1.05); }
+@media (max-width: 560px) { .ld-xbtn { padding: 8px 12px; font-size: 12px; } .ld-topbar { top: 12px; right: 12px; gap: 7px; } }
