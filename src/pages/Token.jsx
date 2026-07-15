@@ -39,6 +39,16 @@ export default function Token({ auth }) {
   const [board, setBoard] = useState({ new: [], graduating: [], graduated: [] })
   const [listTab, setListTab] = useState('new')
   const [market, setMarket] = useState(localStorage.getItem('pl-market') || 'robinhood')
+  const [sellBal, setSellBal] = useState(null) // embedded-wallet balance of this token
+
+  // read the user's token balance while the Sell side is open
+  useEffect(() => {
+    if (side !== 'sell' || !auth.evmAddress || !token) { setSellBal(null); return }
+    let alive = true
+    const load = () => rhClient.readContract({ address, abi: erc20Abi, functionName: 'balanceOf', args: [auth.evmAddress] }).then((b) => alive && setSellBal(Number(b) / 1e18)).catch(() => {})
+    load(); const i = setInterval(load, 8000)
+    return () => { alive = false; clearInterval(i) }
+  }, [side, auth.evmAddress, address, token])
 
   useEffect(() => {
     let alive = true
@@ -236,6 +246,13 @@ export default function Token({ auth }) {
           {side === 'buy'
             ? <div className="tk-presets">{[10, 100, 500, 1000].map((v) => <button key={v} onClick={() => setAmt(String(v))}>${v}</button>)}</div>
             : <div className="tk-presets">{[25, 50, 100].map((v) => <button key={v} onClick={() => setAmt(String(v))}>{v}%</button>)}</div>}
+          {side === 'sell' && (
+            <div className="tk-sellbal">
+              <span>Balance</span>
+              <b>{sellBal == null ? '…' : sellBal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' ' + token.symbol}</b>
+              {sellBal != null && amt > 0 && <em>selling {(sellBal * Math.min(100, parseFloat(amt) || 0) / 100).toLocaleString(undefined, { maximumFractionDigits: 0 })} · {usd(sellBal * (Math.min(100, parseFloat(amt) || 0) / 100) * token.priceEth, eth)}</em>}
+            </div>
+          )}
           <button className={'tk-cta' + (side === 'sell' ? ' sellmode' : '')} onClick={side === 'buy' ? buy : sell}>{!auth.authenticated ? 'Log in' : side === 'buy' ? 'Buy ' + token.symbol : 'Sell ' + token.symbol}</button>
           <div className="tk-status">{status}</div>
           <div className="tk-about"><h3>About {token.symbol}</h3><p>{token.description || 'No description.'}</p></div>
