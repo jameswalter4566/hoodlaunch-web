@@ -2,8 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { createChart } from 'lightweight-charts'
 import { Connection, Transaction, PublicKey, TransactionInstruction } from '@solana/web3.js'
+import { createPublicClient, http as vHttp, defineChain } from 'viem'
 import { API, RELAY, EXPLORER, usd, fmtAge, ethUsd, shortAddr } from '../api'
 import MarketSwitcher from '../components/MarketSwitcher.jsx'
+
+// read-only Robinhood Chain client (token balances for the embedded EVM wallet)
+const RH = defineChain({ id: 4663, name: 'Robinhood Chain', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: ['https://rpc.mainnet.chain.robinhood.com'] } } })
+const rhClient = createPublicClient({ chain: RH, transport: vHttp() })
+const erc20Abi = [{ type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ type: 'address' }], outputs: [{ type: 'uint256' }] }]
+const toHexWei = (v) => (v ? '0x' + BigInt(v).toString(16) : '0x0')
 
 const SOLANA_RPC = API + '/api/solana-rpc'
 const hexToBytes = (hex) => { const h = hex.replace(/^0x/, ''); const o = new Uint8Array(h.length / 2); for (let i = 0; i < o.length; i++) o[i] = parseInt(h.substr(i * 2, 2), 16); return o }
@@ -112,6 +119,43 @@ export default function Token({ auth }) {
     } catch (e) { setStatus(e.message || String(e)) }
   }
 
+  // Sell: the embedded EVM wallet signs the token->WETH->ETH->SOL Relay steps (no
+  // popup, gas funded from treasury). `amt` is a percentage of the token balance.
+  async function sell() {
+    try {
+      if (!auth.authenticated) return auth.login()
+      const evm = auth.evmAddress
+      if (!evm) throw new Error('Your trading wallet is still setting up — try again in a moment')
+      setStatus('Checking balance…')
+      const bal = await rhClient.readContract({ address, abi: erc20Abi, functionName: 'balanceOf', args: [evm] })
+      if (bal === 0n) throw new Error('You have no ' + token.symbol + ' to sell')
+      const pct = Math.min(100, Math.max(1, parseFloat(amt) || 100))
+      const amountWei = (bal * BigInt(Math.floor(pct * 100))) / 10000n
+      setStatus('Preparing wallet…')
+      await fetch(API + '/api/gas/topup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evmAddress: evm }) })
+      setStatus('Getting sell quote…')
+      const q = await fetch(API + '/api/quote/sell?token=' + address + '&tokenAmountWei=' + amountWei.toString() + '&evmAddress=' + evm + '&solanaRecipient=' + auth.solana).then((r) => r.json())
+      if (!q.steps) throw new Error(q.message || 'Sell quote failed')
+      setStatus('Selling ' + token.symbol + '…')
+      try { await auth.evmWallet.switchChain(4663) } catch {}
+      const provider = await auth.evmWallet.getEthereumProvider()
+      let check = null
+      for (const step of q.steps) {
+        for (const it of step.items || []) {
+          if (it.status === 'complete') continue
+          const t = it.data
+          await provider.request({ method: 'eth_sendTransaction', params: [{ from: evm, to: t.to, data: t.data || '0x', value: toHexWei(t.value) }] })
+          if (it.check) check = it.check
+        }
+      }
+      setStatus('Bridging to SOL…')
+      if (check) {
+        for (let i = 0; i < 45; i++) { await sleep(2000); const st = await fetch(RELAY + check.endpoint).then((r) => r.json()); if (st.status === 'success') { setStatus('✅ Sold — SOL sent to your Phantom'); return } if (st.status === 'failure' || st.status === 'refund') throw new Error('Relay ' + st.status) }
+      }
+      setStatus('✅ Sold ' + token.symbol)
+    } catch (e) { setStatus(e.message || String(e)) }
+  }
+
   if (!token) return <div className="main tk-wrap"><div style={{ padding: 40, color: '#9899a3' }}>Loading…</div></div>
 
   const day = trades.filter((t) => Date.now() - new Date(t.ts).getTime() < 86400e3)
@@ -185,9 +229,11 @@ export default function Token({ auth }) {
             <button className={'buy' + (side === 'buy' ? ' on' : '')} onClick={() => setSide('buy')}>Buy</button>
             <button className={'sell' + (side === 'sell' ? ' on' : '')} onClick={() => setSide('sell')}>Sell</button>
           </div>
-          <div className="tk-amount"><input type="number" min="0" value={amt} onChange={(e) => setAmt(e.target.value)} placeholder="$0" /><span>USD in SOL</span></div>
-          {side === 'buy' && <div className="tk-presets">{[10, 100, 500, 1000].map((v) => <button key={v} onClick={() => setAmt(String(v))}>${v}</button>)}</div>}
-          <button className={'tk-cta' + (side === 'sell' ? ' sellmode' : '')} onClick={buy}>{!auth.authenticated ? 'Log in' : side === 'buy' ? 'Buy ' + token.symbol : 'Sell ' + token.symbol}</button>
+          <div className="tk-amount"><input type="number" min="0" value={amt} onChange={(e) => setAmt(e.target.value)} placeholder={side === 'buy' ? '$0' : '100'} /><span>{side === 'buy' ? 'USD in SOL' : '% of balance'}</span></div>
+          {side === 'buy'
+            ? <div className="tk-presets">{[10, 100, 500, 1000].map((v) => <button key={v} onClick={() => setAmt(String(v))}>${v}</button>)}</div>
+            : <div className="tk-presets">{[25, 50, 100].map((v) => <button key={v} onClick={() => setAmt(String(v))}>{v}%</button>)}</div>}
+          <button className={'tk-cta' + (side === 'sell' ? ' sellmode' : '')} onClick={side === 'buy' ? buy : sell}>{!auth.authenticated ? 'Log in' : side === 'buy' ? 'Buy ' + token.symbol : 'Sell ' + token.symbol}</button>
           <div className="tk-status">{status}</div>
           <div className="tk-about"><h3>About {token.symbol}</h3><p>{token.description || 'No description.'}</p></div>
           <div className="tk-flow">
