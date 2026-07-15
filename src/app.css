@@ -242,7 +242,10 @@ body.app-sky #sky-bg { display: block; }
 .aw-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
 .aw-lbl { font-size: 12px; font-weight: 800; color: var(--txt2); text-transform: uppercase; letter-spacing: 0.4px; }
 .aw-note { font-size: 10.5px; color: var(--txt3); }
-.aw-refresh { margin-left: auto; border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 7px; width: 26px; height: 24px; font-size: 13px; cursor: pointer; }
+.aw-hbtn { border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 999px; padding: 4px 11px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.aw-hbtn:first-of-type { margin-left: auto; }
+.aw-hbtn:hover { color: var(--green); border-color: var(--green); }
+.aw-refresh { border: 1px solid var(--line2); background: var(--card2); color: var(--txt2); border-radius: 7px; width: 26px; height: 24px; font-size: 13px; cursor: pointer; }
 .aw-refresh:hover { color: var(--green); border-color: var(--green); }
 .aw-rows { display: flex; flex-direction: column; gap: 7px; }
 .aw-row { display: flex; align-items: center; gap: 9px; background: var(--card); border: 1px solid var(--line2); border-radius: 11px; padding: 7px 10px; }

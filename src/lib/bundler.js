@@ -227,3 +227,27 @@ export async function sweepSol(slot, toPubkey) {
 
 export const short = (a) => (a ? a.slice(0, 4) + '…' + a.slice(-4) : '')
 export const isSolAddress = (a) => { try { new PublicKey(a); return true } catch { return false } }
+
+// both private keys for one slot, for export/backup
+export const slotKeys = (s) => ({ solanaAddress: s.solPubkey, solanaPrivateKey: s.solSecret, evmAddress: s.evmAddress, evmPrivateKey: s.evmPk })
+
+// merge an imported backup into the current pool (dedupe by id/pubkey, keep valid slots only)
+export function mergeSlots(existing, incoming) {
+  const byId = new Map(existing.map((s) => [s.id, s]))
+  for (const s of incoming || []) {
+    if (s && s.solPubkey && s.solSecret && s.evmAddress && s.evmPk) {
+      const id = s.id || s.solPubkey
+      byId.set(id, { snipeSol: '', ...s, id })
+    }
+  }
+  return [...byId.values()]
+}
+
+// trigger a browser download of a JSON backup
+export function downloadJSON(filename, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url; a.download = filename; a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}

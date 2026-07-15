@@ -29,6 +29,10 @@ const WalletStrip = forwardRef(function WalletStrip(_props, ref) {
   const remove = (id) => persist(slots.filter((s) => s.id !== id))
   const setAmt = (id, snipeSol) => persist(slots.map((s) => (s.id === id ? { ...s, snipeSol } : s)))
   const copyFund = (s) => { navigator.clipboard.writeText(s.solPubkey).catch(() => {}); setCopied(s.id); setTimeout(() => setCopied(''), 1100) }
+  // export BOTH private keys (Solana buyer + EVM twin) for one wallet
+  const exportKeys = (s) => { navigator.clipboard.writeText(JSON.stringify(B.slotKeys(s), null, 2)).catch(() => {}); setCopied('k:' + s.id); setTimeout(() => setCopied(''), 1400) }
+  const exportAll = () => B.downloadJSON('bullish-bundle-wallets-' + slots.length + '.json', B.loadSlots())
+  const importAll = (file) => { const r = new FileReader(); r.onload = () => { try { persist(B.mergeSlots(B.loadSlots(), JSON.parse(r.result))) } catch { alert('Bad backup file') } }; r.readAsText(file) }
 
   useImperativeHandle(ref, () => ({
     hasSnipers: () => B.loadSlots().some((s) => Number(s.snipeSol) > 0),
@@ -52,6 +56,8 @@ const WalletStrip = forwardRef(function WalletStrip(_props, ref) {
       <div className="aw-head">
         <span className="aw-lbl">Bundle wallets</span>
         <span className="aw-note">buy on launch via Relay · full control on the bundler page after launch</span>
+        {slots.length > 0 && <button className="aw-hbtn" onClick={exportAll} title="Download a backup of ALL wallet keys">⇩ Export all keys</button>}
+        <label className="aw-hbtn" title="Restore wallets from a backup file">⇧ Import all<input type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files[0]; if (f) importAll(f); e.target.value = '' }} /></label>
         {slots.length > 0 && <button className="aw-refresh" onClick={refresh} title="Refresh balances">↻</button>}
       </div>
 
@@ -67,6 +73,7 @@ const WalletStrip = forwardRef(function WalletStrip(_props, ref) {
             </span>
             <span className="aw-bal"><b>{bal[s.id] == null ? '—' : bal[s.id].toFixed(3)}</b> SOL</span>
             <div className="aw-amt"><input type="number" min="0" step="0.01" value={s.snipeSol} onChange={(e) => setAmt(s.id, e.target.value)} placeholder="0.0" /><span>SOL snipe</span></div>
+            <button className={'aw-exp' + (copied === 'k:' + s.id ? ' ok' : '')} title="Copy BOTH private keys (Solana + ETH)" onClick={() => exportKeys(s)}>{copied === 'k:' + s.id ? 'Copied ✓' : '🔑 Keys'}</button>
             <button className="aw-rm" title="Remove" onClick={() => remove(s.id)}>✕</button>
           </div>
         ))}

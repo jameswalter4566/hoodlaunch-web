@@ -156,7 +156,9 @@ function Bundler({ auth }) {
   }
   const removeSlot = (id) => { if (confirm('Remove this wallet from the bundle? (its keys are only stored here)')) persist(slots.filter((s) => s.id !== id)) }
   const copy = (t) => navigator.clipboard.writeText(t).catch(() => {})
-  const exportKeys = (s) => { copy(JSON.stringify({ solana: s.solSecret, evm: s.evmPk, evmAddress: s.evmAddress }, null, 2)); flash('Keys copied for ' + B.short(s.evmAddress)) }
+  const exportKeys = (s) => { copy(JSON.stringify(B.slotKeys(s), null, 2)); flash('Both keys copied for ' + B.short(s.evmAddress)) }
+  const exportAll = () => { B.downloadJSON('bullish-bundle-wallets-' + slots.length + '.json', B.loadSlots()); flash('Downloaded backup of ' + slots.length + ' wallets') }
+  const importAll = (file) => { const r = new FileReader(); r.onload = () => { try { persist(B.mergeSlots(B.loadSlots(), JSON.parse(r.result))); flash('Imported backup') } catch { flash('Bad backup file') } }; r.readAsText(file) }
 
   async function fundAll() {
     const per = Number(fundSol)
@@ -284,6 +286,8 @@ function Bundler({ auth }) {
             <div className="bn-inline"><input type="number" min="1" max="100" value={createN} onChange={(e) => setCreateN(e.target.value)} /><button className="bn-tool" onClick={createWallets}>+ Create Wallets</button></div>
             <button className="bn-tool" onClick={() => setShowImport((v) => !v)}>Import Wallets</button>
             <div className="bn-inline"><input type="number" min="0" step="0.01" value={fundSol} onChange={(e) => setFundSol(e.target.value)} /><button className="bn-tool green" onClick={fundAll}>Fund {fundSol} SOL ea</button></div>
+            <button className="bn-tool" onClick={exportAll} title="Download a backup of ALL wallet keys">⇩ Export keys</button>
+            <label className="bn-tool" title="Restore wallets from a backup file" style={{ cursor: 'pointer' }}>⇧ Import keys<input type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files[0]; if (f) importAll(f); e.target.value = '' }} /></label>
             <button className="bn-tool" onClick={refresh} title="Refresh balances">↻</button>
           </div>
         </div>
