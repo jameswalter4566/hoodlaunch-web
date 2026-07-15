@@ -8,6 +8,7 @@ const RH = defineChain({ id: 4663, name: 'Robinhood Chain', nativeCurrency: { na
 const rhClient = createPublicClient({ chain: RH, transport: http() })
 const solConn = new Connection(API + '/api/solana-rpc')
 const bal = (n, d) => (n == null ? '—' : n.toFixed(d))
+const FEE_LABELS = { buyback: '🔥 Auto buyback flywheel', split: '⚖️ 50/50 split + buyback', lp: '🌊 Compounds into LP', airdrop: '🎁 Airdrops to holders' }
 
 export default function Profile({ auth }) {
   const { authenticated, solana, token, profile, setProfile, login, evmAddress, exportWallet } = auth
@@ -166,9 +167,11 @@ export default function Profile({ auth }) {
                   <Link className="pf2-row-img" to={'/coin/' + t.address}>{t.image_url ? <img src={t.image_url} alt="" onError={(e) => e.target.remove()} /> : (t.symbol || '?')[0].toUpperCase()}</Link>
                   <div className="pf2-row-main">
                     <Link to={'/coin/' + t.address} className="pf2-row-nm"><b>{t.symbol}</b> <span>{t.name}</span></Link>
-                    <div className="pf2-row-sub">{claiming[t.position_id] || (fees[t.position_id] > 0 ? usd(fees[t.position_id], eth) + ' in fees claimable' : 'no fees accrued yet')}</div>
+                    <div className="pf2-row-sub">{t.fee_mode && t.fee_mode !== 'keep' ? FEE_LABELS[t.fee_mode] : (claiming[t.position_id] || (fees[t.position_id] > 0 ? usd(fees[t.position_id], eth) + ' in fees claimable' : 'no fees accrued yet'))}</div>
                   </div>
-                  <button className="pf2-claim" disabled={!(fees[t.position_id] > 0)} onClick={() => claim(t.position_id)}>Claim</button>
+                  {t.fee_mode && t.fee_mode !== 'keep'
+                    ? <span className="pf2-automode">Auto</span>
+                    : <button className="pf2-claim" disabled={!(fees[t.position_id] > 0)} onClick={() => claim(t.position_id)}>Claim</button>}
                 </div>
               ))}
             </div>
