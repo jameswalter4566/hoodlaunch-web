@@ -21,6 +21,13 @@ body.app-sky #sky-bg { display: block; }
 .tk-list-mkt .mkt-seg { width: 100%; }
 .tk-list-mkt .mkt-seg button { flex: 1; }
 
+/* header wallet chips (Robinhood EVM + Solana): logo | address | balance */
+.wchip { display: inline-flex; align-items: center; gap: 7px; background: rgba(16,15,24,0.86); border: 1px solid var(--line2); border-radius: 999px; padding: 5px 12px 5px 6px; backdrop-filter: blur(14px); }
+.wchip img { width: 19px; height: 19px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.wchip .waddr { font-size: 11.5px; font-weight: 600; color: var(--txt3); font-family: ui-monospace, SFMono-Regular, monospace; }
+.wchip .wbal { font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; }
+@media (max-width: 900px) { .wchip .waddr { display: none; } }
+
 .hl-authbtn { display: inline-flex; align-items: center; gap: 7px; color: #fff; }
 .hl-authbtn.on { color: #fff; }
 .hl-auth-av { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }

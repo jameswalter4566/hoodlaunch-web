@@ -34,8 +34,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         theme: 'dark',
         accentColor: '#21c95e',
         logo: '/logo.png',
-        walletChainType: 'solana-only',
-        // show only Solana wallets in the modal (no MetaMask/EVM clutter)
+        // 'ethereum-and-solana' so Privy provisions the embedded EVM wallet;
+        // walletList keeps the LOGIN modal Solana-only (no MetaMask/EVM clutter).
+        walletChainType: 'ethereum-and-solana',
         walletList: ['phantom', 'solflare', 'backpack', 'okx_wallet'],
       },
       loginMethods: ['wallet'],

@@ -1,13 +1,39 @@
 import { useEffect, useState } from 'react'
+import { createPublicClient, http, defineChain } from 'viem'
+import { Connection, PublicKey } from '@solana/web3.js'
 import { API, authFetch, shortAddr } from '../api'
 
-// Top-right auth control + first-login profile modal (username + avatar).
+const RH = defineChain({ id: 4663, name: 'Robinhood Chain', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: ['https://rpc.mainnet.chain.robinhood.com'] } } })
+const rhClient = createPublicClient({ chain: RH, transport: http() })
+const solConn = new Connection(API + '/api/solana-rpc')
+const fmtBal = (n, d) => (n == null ? '—' : n > 0 && n < 1 / 10 ** d ? '<' + (1 / 10 ** d) : n.toFixed(d))
+
+// Top-right auth control: RH + Solana wallet chips (address + balance) then the
+// profile button. Plus the first-login profile modal (username + avatar).
 export default function AuthButton({ auth }) {
-  const { ready, authenticated, solana, token, profile, setProfile, login, logout } = auth
+  const { ready, authenticated, solana, token, profile, setProfile, login, logout, evmAddress } = auth
   const [open, setOpen] = useState(false)
   const [username, setUsername] = useState('')
   const [avatar, setAvatar] = useState('')
   const [saving, setSaving] = useState(false)
+  const [ethBal, setEthBal] = useState(null)
+  const [solBal, setSolBal] = useState(null)
+
+  // live balances for the two wallets shown in the header
+  useEffect(() => {
+    if (!evmAddress) { setEthBal(null); return }
+    let alive = true
+    const load = () => rhClient.getBalance({ address: evmAddress }).then((b) => alive && setEthBal(Number(b) / 1e18)).catch(() => {})
+    load(); const i = setInterval(load, 15000)
+    return () => { alive = false; clearInterval(i) }
+  }, [evmAddress])
+  useEffect(() => {
+    if (!solana) { setSolBal(null); return }
+    let alive = true
+    const load = () => solConn.getBalance(new PublicKey(solana)).then((b) => alive && setSolBal(b / 1e9)).catch(() => {})
+    load(); const i = setInterval(load, 15000)
+    return () => { alive = false; clearInterval(i) }
+  }, [solana])
 
   // prompt for a profile the first time a wallet logs in with no username
   useEffect(() => {
@@ -46,7 +72,21 @@ export default function AuthButton({ auth }) {
 
   return (
     <>
-      <div id="hl-auth" style={{ position: 'fixed', top: 14, right: 18, zIndex: 200 }}>
+      <div id="hl-auth" style={{ position: 'fixed', top: 14, right: 18, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8 }}>
+        {authenticated && solana && (
+          <>
+            <div className="wchip" title="Your Robinhood Chain trading wallet (holds bought tokens)">
+              <img src="/robinhood.png" alt="RH" />
+              <span className="waddr">{shortAddr(evmAddress)}</span>
+              <b className="wbal">{fmtBal(ethBal, 4)} ETH</b>
+            </div>
+            <div className="wchip" title="Your Solana wallet (Phantom)">
+              <img src="/solana.png" alt="SOL" />
+              <span className="waddr">{shortAddr(solana)}</span>
+              <b className="wbal">{fmtBal(solBal, 3)} SOL</b>
+            </div>
+          </>
+        )}
         {authenticated && solana ? (
           <button className="hl-authbtn on" onClick={() => setOpen(true)}>
             {profile?.avatar_url && <img src={profile.avatar_url} alt="" className="hl-auth-av" />}
