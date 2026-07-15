@@ -92,30 +92,44 @@ export default function AdminLaunch({ auth }) {
       await primaryWallet.sendTransaction(tx, conn)
       setLx((l) => ({ ...l, pct: 40, label: 'Launching on Robinhood Chain…' }))
 
+      // Snapshot tokens that already carry this symbol so we can spot the NEW one
+      // the moment our indexer lists it (i.e. the instant it hits "new pairs").
+      const symU = (f.symbol || '').toUpperCase()
+      const before = new Set()
+      try {
+        const b = await fetch(API + '/api/board').then((r) => r.json())
+        ;[...(b.new || []), ...(b.graduating || []), ...(b.graduated || [])].forEach((t) => before.add((t.address || '').toLowerCase()))
+      } catch { /* board may be briefly unavailable */ }
+
+      // Race two paths to the token address at 700ms and take whichever lands first:
+      //  (a) our board shows the freshly-indexed token (the "new pairs" signal), or
+      //  (b) Relay confirms → decode the address from the launch receipt.
+      // Fire the snipe the instant we have it — no waiting on the slow Relay status.
       const check = quote.steps[0].items[0].check
-      let dst = null
-      for (let i = 0; i < 45; i++) {
-        await sleep(2000)
-        const st = await fetch(RELAY + check.endpoint).then((r) => r.json())
-        if (st.status === 'success') { dst = st.txHashes?.[0]; break }
-        if (st.status === 'failure' || st.status === 'refund') throw new Error('Relay ' + st.status + ' — SOL refunded if deducted.')
-        setLx((l) => ({ ...l, pct: Math.min(80, 40 + i * 4), label: 'Launching on Robinhood Chain…' }))
+      let address = null, dst = null
+      setLx((l) => ({ ...l, pct: 55, label: 'Launching — watching for the pair…' }))
+      for (let i = 0; i < 130 && !address; i++) {
+        await sleep(700)
+        // fast path: our own board (reflects on-chain indexing)
+        try {
+          const b = await fetch(API + '/api/board').then((r) => r.json())
+          const hit = [...(b.new || []), ...(b.graduating || []), ...(b.graduated || [])].find((t) => (t.symbol || '').toUpperCase() === symU && !before.has((t.address || '').toLowerCase()))
+          if (hit?.address) address = hit.address
+        } catch { /* keep polling */ }
+        // relay path: detect failure fast + grab the launch tx hash for the receipt
+        if (!address) {
+          const st = await fetch(RELAY + check.endpoint).then((r) => r.json()).catch(() => ({}))
+          if (st.status === 'failure' || st.status === 'refund') throw new Error('Relay ' + st.status + ' — SOL refunded if deducted.')
+          if (st.status === 'success' && !dst) dst = st.txHashes?.[0]
+          if (dst) { const r = await fetch(API + '/api/launch/result/' + dst).then((x) => (x.ok ? x.json() : null)).catch(() => null); if (r?.address) address = r.address }
+        }
+        setLx((l) => ({ ...l, pct: Math.min(90, 55 + i), label: 'Launching — watching for the pair…' }))
       }
-      if (!dst) throw new Error('Still filling — check relay.link with your wallet.')
+      if (!address) throw new Error('Launch is taking longer than expected — check relay.link with your wallet.')
 
-      // decode the new token address from the launch tx so we can jump to /coin
-      setLx((l) => ({ ...l, pct: 88, label: 'Confirming your coin…', txHash: dst }))
-      let address = null
-      for (let i = 0; i < 20; i++) {
-        const r = await fetch(API + '/api/launch/result/' + dst).then((x) => (x.ok ? x.json() : null)).catch(() => null)
-        if (r?.address) { address = r.address; break }
-        await sleep(1500)
-      }
-
-      // fire the bundle-wallet snipes the instant the token address is known —
-      // each buyer pays SOL via Relay and the tokens land in ITS OWN EVM twin.
-      if (address && bundleRef.current?.hasSnipers()) {
-        setLx((l) => ({ ...l, pct: 96, label: 'Sniping with bundle wallets…' }))
+      // FIRE THE SNIPE IMMEDIATELY — all wallets buy at once, awaited so every order goes out.
+      if (bundleRef.current?.hasSnipers()) {
+        setLx((l) => ({ ...l, pct: 95, label: '🚀 Sniping — all buys firing now…', address }))
         try { await bundleRef.current.fire(address) } catch { /* per-wallet errors shown on each row */ }
       }
 

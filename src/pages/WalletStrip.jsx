@@ -31,6 +31,8 @@ const WalletStrip = forwardRef(function WalletStrip(_props, ref) {
   const copyFund = (s) => { navigator.clipboard.writeText(s.solPubkey).catch(() => {}); setCopied(s.id); setTimeout(() => setCopied(''), 1100) }
   // copy ONE raw private key so you can paste it straight into a wallet
   const copyKey = (kind, s) => { navigator.clipboard.writeText(kind === 's' ? s.solSecret : s.evmPk).catch(() => {}); setCopied(kind + ':' + s.id); setTimeout(() => setCopied(''), 1200) }
+  // download a backup file of every wallet's keys — hit this BEFORE launching
+  const exportAll = () => B.downloadJSON('bullish-bundle-wallets-' + slots.length + '.json', B.loadSlots())
 
   useImperativeHandle(ref, () => ({
     hasSnipers: () => B.loadSlots().some((s) => Number(s.snipeSol) > 0),
@@ -54,7 +56,8 @@ const WalletStrip = forwardRef(function WalletStrip(_props, ref) {
       <div className="aw-head">
         <span className="aw-lbl">Bundle wallets</span>
         <span className="aw-note">buy on launch via Relay · full control on the bundler page after launch</span>
-        {slots.length > 0 && <button className="aw-refresh" onClick={refresh} title="Refresh balances" style={{ marginLeft: 'auto' }}>↻</button>}
+        {slots.length > 0 && <button className="aw-kbtn" onClick={exportAll} title="Download a backup of ALL wallet keys — do this before launching" style={{ marginLeft: 'auto' }}>⇩ Export all</button>}
+        {slots.length > 0 && <button className="aw-refresh" onClick={refresh} title="Refresh balances">↻</button>}
       </div>
 
       <div className="aw-rows">
