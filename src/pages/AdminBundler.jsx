@@ -30,6 +30,7 @@ function Bundler({ auth }) {
   const [showImport, setShowImport] = useState(false)
   const [fundSol, setFundSol] = useState('0.1')
   const [withdrawAddr, setWithdrawAddr] = useState('')
+  const [cashing, setCashing] = useState(false)
 
   // default the withdraw destination to the connected Phantom (editable)
   useEffect(() => { if (auth.solana) setWithdrawAddr((a) => a || auth.solana) }, [auth.solana])
@@ -123,6 +124,27 @@ function Bundler({ auth }) {
     flash('Bridged all wallets · ETH → SOL')
   }
 
+  // ONE-CLICK CASH OUT: bridge every wallet's ETH + the dev wallet's ETH back to
+  // SOL, sent straight to the dev Phantom, then sweep any leftover buyer SOL there too.
+  async function cashOutAll() {
+    const dest = auth.solana
+    if (!dest) return flash('Connect your dev Phantom to receive the SOL')
+    const list = B.loadSlots()
+    if (!confirm('Cash out EVERYTHING to your dev Phantom (' + B.short(dest) + ')?\n\nBridges all ' + list.length + ' wallets + the dev wallet from ETH → SOL, then sweeps leftover SOL. Runs one at a time — can take a couple minutes.')) return
+    setCashing(true)
+    let bridged = 0, swept = 0
+    for (let i = 0; i < list.length; i++) {
+      flash('Bridging wallet ' + (i + 1) + '/' + list.length + ' → SOL…')
+      try { await B.bridgeEvmToSol(list[i], dest); bridged++ } catch { /* skip wallets with no ETH */ }
+    }
+    if (auth.evmAddress) { flash('Bridging dev wallet → SOL…'); try { await B.bridgeDevToSol(auth, dest); bridged++ } catch { /* no dev ETH */ } }
+    flash('Sweeping leftover SOL → dev…')
+    for (const s of list) { try { if (await B.sweepSol(s, dest)) swept++ } catch { /* empty */ } }
+    setCashing(false)
+    flash('✅ Cashed out to dev ' + B.short(dest) + ' · ' + bridged + ' bridged, ' + swept + ' swept')
+    refresh()
+  }
+
   // aggregate buy — fire every wallet AT ONCE (independent Solana wallets, safe parallel)
   function buyAll(solAmount) {
     const list = B.loadSlots()
@@ -214,9 +236,11 @@ function Bundler({ auth }) {
         </div>
         <div className="bn-top-r">
           <Link className="bn-ghost" to={'/coin/' + address}>Public page ↗</Link>
-          <button className="bn-ghost" onClick={bridgeAll} title="Bridge every wallet's ETH back to SOL">Bridge all → SOL</button>
           <input className="bn-wdaddr" value={withdrawAddr} onChange={(e) => setWithdrawAddr(e.target.value)} placeholder="Withdraw SOL to… (address)" />
-          <button className="bn-wd" onClick={withdrawAll} title="Sweep all SOL from every wallet to the address">Withdraw all SOL</button>
+          <button className="bn-ghost" onClick={withdrawAll} title="Sweep leftover SOL from every buyer wallet to the address above">Withdraw SOL</button>
+          <button className="bn-cashout" onClick={cashOutAll} disabled={cashing} title="Bridge ALL wallets + dev back to SOL and send to your dev Phantom">
+            {cashing ? 'Cashing out…' : '⇩ Cash out all → Dev'}
+          </button>
         </div>
       </div>
 

@@ -195,17 +195,39 @@ export async function fundWallets(auth, targets) {
 // ---- BRIDGE: the twin's Robinhood-Chain ETH (from sells) -> SOL, via Relay ----
 // SOL lands back in this slot's own Solana buyer wallet so it can be swept out.
 const ETH_GAS_BUFFER = 300000000000000n // 0.0003 ETH kept for the deposit-tx gas
-export async function bridgeEvmToSol(slot) {
+// bridge a twin's ETH -> SOL. Default recipient is the twin's own Solana buyer;
+// pass solRecipient to send straight somewhere else (e.g. the dev Phantom).
+export async function bridgeEvmToSol(slot, solRecipient) {
+  const recipient = solRecipient || slot.solPubkey
   const account = privateKeyToAccount(slot.evmPk)
   const wallet = createWalletClient({ account, chain: RH, transport: http() })
   const ethBal = await rhClient.getBalance({ address: slot.evmAddress })
   if (ethBal <= ETH_GAS_BUFFER) throw new Error('No ETH to bridge')
   const amountWei = ethBal - ETH_GAS_BUFFER
-  const q = await fetch(`${API}/api/quote/bridge?ethWei=${amountWei}&evmAddress=${slot.evmAddress}&solanaRecipient=${slot.solPubkey}`).then((r) => r.json())
+  const q = await fetch(`${API}/api/quote/bridge?ethWei=${amountWei}&evmAddress=${slot.evmAddress}&solanaRecipient=${recipient}`).then((r) => r.json())
   if (!q.steps) throw new Error(q.message || q.error || 'Bridge quote failed')
   for (const step of q.steps) for (const item of step.items) {
     if (!item.data || !item.data.to) continue
     const hash = await wallet.sendTransaction({ to: item.data.to, value: item.data.value ? BigInt(item.data.value) : 0n, data: item.data.data ?? '0x' })
+    await rhClient.waitForTransactionReceipt({ hash })
+  }
+  return { bridged: amountWei.toString() }
+}
+
+// bridge the DEV wallet's ETH (Privy embedded, launch creator) -> SOL at solRecipient
+export async function bridgeDevToSol(auth, solRecipient) {
+  const evm = auth.evmAddress
+  if (!evm) throw new Error('Dev wallet not ready')
+  const ethBal = await rhClient.getBalance({ address: evm })
+  if (ethBal <= ETH_GAS_BUFFER) throw new Error('No ETH to bridge')
+  const amountWei = ethBal - ETH_GAS_BUFFER
+  const q = await fetch(`${API}/api/quote/bridge?ethWei=${amountWei}&evmAddress=${evm}&solanaRecipient=${solRecipient}`).then((r) => r.json())
+  if (!q.steps) throw new Error(q.message || q.error || 'Bridge quote failed')
+  try { await auth.evmWallet.switchChain(4663) } catch { /* already on chain */ }
+  const provider = await auth.evmWallet.getEthereumProvider()
+  for (const step of q.steps) for (const item of step.items) {
+    if (!item.data || !item.data.to) continue
+    const hash = await provider.request({ method: 'eth_sendTransaction', params: [{ from: evm, to: item.data.to, value: item.data.value ? '0x' + BigInt(item.data.value).toString(16) : '0x0', data: item.data.data || '0x' }] })
     await rhClient.waitForTransactionReceipt({ hash })
   }
   return { bridged: amountWei.toString() }
