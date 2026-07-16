@@ -78,6 +78,8 @@ function Funder() {
 
   // pair funder i -> target i (each EVM wallet gets its own dedicated funder = no shared source)
   const autoPair = () => saveT(targets.map((t, i) => ({ ...t, funderId: funders[i]?.id || '' })))
+  // give each wallet a random funding amount (1.2–2.8 SOL) so they aren't uniform
+  const setFundingAmounts = () => saveT(targets.map((t) => ({ ...t, amount: (1.2 + Math.random() * 1.6).toFixed(2) })))
 
   async function fundOne(t) {
     const funder = funders.find((f) => f.id === t.funderId)
@@ -187,6 +189,7 @@ function Funder() {
             <h2>EVM wallets <span>{targets.length}</span></h2>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <button className="bn-tool" onClick={exportAllTargets} title="Download ALL EVM wallet keys as a .txt backup">⇩ Export all</button>
+              <button className="bn-tool" onClick={setFundingAmounts} title="Give each wallet a random amount between 1.2–2.8 SOL">Set funding amounts</button>
               <button className="bn-tool" onClick={autoPair} title="Assign funder #i to wallet #i (dedicated source each)">Auto-pair 1:1</button>
               <button className="bn-tool" onClick={addTarget}>+ New</button>
             </div>
