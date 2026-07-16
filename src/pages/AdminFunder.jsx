@@ -21,6 +21,7 @@ function Funder() {
   const [perAmount, setPerAmount] = useState('0.05')
   const [jitter, setJitter] = useState(true)
   const [funding, setFunding] = useState(false)
+  const [bridging, setBridging] = useState(false)
 
   const saveF = (x) => { setFunders(x); B.saveFunders(x) }
   const saveT = (x) => { setTargets(x); B.saveTargets(x) }
@@ -126,6 +127,25 @@ function Funder() {
     refresh()
   }
 
+  // REVERSE: every EVM wallet bridges ALL its ETH back to SOL, to its funder (or the
+  // master). Each wallet signs its own bridge, so they fire in parallel — near-instant.
+  async function bridgeBackAll() {
+    const list = B.loadTargets().filter((t) => t.pk) // need the private key to sign the bridge
+    if (!list.length) return flash('No wallets with keys to bridge (address-only imports can\'t be swept)')
+    if (!funders.length) return flash('Add a funder to receive the SOL first')
+    setBridging(true)
+    let ok = 0
+    await Promise.all(list.map((t, i) => new Promise((r) => setTimeout(r, i * 200)).then(async () => {
+      const funder = funders.find((f) => f.id === t.funderId) || funders.find((f) => f.id === masterId) || funders[0]
+      setBusy((b) => ({ ...b, [t.id]: 'funding' }))
+      try { await B.bridgeEvmToSol({ evmPk: t.pk, evmAddress: t.address }, funder.pubkey); setBusy((b) => ({ ...b, [t.id]: 'ok' })); ok++ }
+      catch (e) { setBusy((b) => ({ ...b, [t.id]: 'fail' })); flash('⚠️ ' + B.short(t.address) + ': ' + (e.message || e)) }
+    })))
+    setBridging(false)
+    flash('✅ Bridged ' + ok + '/' + list.length + ' wallets back → SOL')
+    refresh()
+  }
+
   return (
     <div className="main fn">
       <div className="fn-head">
@@ -218,7 +238,10 @@ function Funder() {
             ))}
             {!targets.length && <div className="fn-empty">No wallets yet — import or generate the EVM wallets to fund.</div>}
           </div>
-          <button className="fn-fundall" onClick={fundAll}>⇩ Fund all (SOL → ETH via Relay)</button>
+          <div className="fn-actions2">
+            <button className="fn-fundall" onClick={fundAll}>⇩ Fund all (SOL → ETH)</button>
+            <button className="fn-bridgeback" disabled={bridging} onClick={bridgeBackAll}>{bridging ? 'Bridging back…' : '⇆ Bridge all back → SOL'}</button>
+          </div>
         </section>
       </div>
 

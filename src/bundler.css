@@ -142,3 +142,10 @@
 .fn-master-r input[type=number] { width: 74px; background: var(--card); border: 1px solid var(--line2); border-radius: 8px; padding: 8px 10px; color: var(--txt); font-family: inherit; font-size: 12.5px; font-weight: 700; outline: none; text-align: right; }
 .fn-master-unit { font-size: 11px; color: var(--txt3); font-weight: 700; }
 .fn-master-jit { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--txt2); cursor: pointer; }
+
+.fn-actions2 { display: flex; gap: 10px; margin-top: 14px; }
+.fn-actions2 .fn-fundall { margin-top: 0; flex: 1; }
+.fn-bridgeback { flex: 1; border: none; border-radius: 10px; background: linear-gradient(180deg, #4ea7fa 0%, #2f7fd6 100%); color: #041018; font-family: inherit; font-size: 14px; font-weight: 800; padding: 12px; cursor: pointer; }
+.fn-bridgeback:hover:not(:disabled) { opacity: 0.92; }
+.fn-bridgeback:disabled { opacity: 0.6; cursor: default; }
+@media (max-width: 620px) { .fn-actions2 { flex-direction: column; } }
