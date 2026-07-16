@@ -250,6 +250,63 @@ export async function sweepSol(slot, toPubkey) {
 export const short = (a) => (a ? a.slice(0, 4) + '…' + a.slice(-4) : '')
 export const isSolAddress = (a) => { try { new PublicKey(a); return true } catch { return false } }
 
+/* ============================================================
+   FUNDER panel — bulk-fund EVM wallets with ETH via Relay so each
+   lands funded by the Relay solver (unlinked on Robinhood Chain).
+   Solana "funders" (each fed from a CEX like Coinbase) pay for the
+   bridges; pairing them 1:1 with EVM wallets avoids a shared source.
+   ============================================================ */
+const FUNDER_KEY = 'hl_funder_sol'   // Solana wallets that hold SOL and pay for bridges
+const TARGET_KEY = 'hl_funder_evm'   // EVM wallets to receive ETH (+ maybe trade from)
+export const loadFunders = () => { try { return JSON.parse(localStorage.getItem(FUNDER_KEY)) || [] } catch { return [] } }
+export const saveFunders = (x) => localStorage.setItem(FUNDER_KEY, JSON.stringify(x))
+export const loadTargets = () => { try { return JSON.parse(localStorage.getItem(TARGET_KEY)) || [] } catch { return [] } }
+export const saveTargets = (x) => localStorage.setItem(TARGET_KEY, JSON.stringify(x))
+
+export function newFunder() { const kp = Keypair.generate(); return { id: kp.publicKey.toBase58(), pubkey: kp.publicKey.toBase58(), secret: bs58.encode(kp.secretKey) } }
+export function importFunder(input) {
+  const s = input.trim()
+  const bytes = s.startsWith('[') ? Uint8Array.from(JSON.parse(s)) : bs58.decode(s)
+  const kp = Keypair.fromSecretKey(bytes)
+  return { id: kp.publicKey.toBase58(), pubkey: kp.publicKey.toBase58(), secret: bs58.encode(kp.secretKey) }
+}
+
+export function newEvmTarget() { const pk = generatePrivateKey(); const a = privateKeyToAccount(pk); return { id: a.address.toLowerCase(), address: a.address, pk, amount: '' } }
+// accept an EVM private key (0x + 64 hex -> we can also trade/export) OR a bare address (fund-only)
+export function importEvmTarget(input) {
+  const s = input.trim()
+  if (/^0x[0-9a-fA-F]{64}$/.test(s)) { const a = privateKeyToAccount(s); return { id: a.address.toLowerCase(), address: a.address, pk: s, amount: '' } }
+  if (/^0x[0-9a-fA-F]{40}$/.test(s)) { return { id: s.toLowerCase(), address: s, amount: '' } }
+  throw new Error('Not a valid EVM address or private key')
+}
+
+// bridge SOL -> Robinhood Chain ETH from a funder to an EVM address (signed by the funder)
+export async function fundEvm(funder, evmAddress, solAmount) {
+  const lamports = Math.floor(Number(solAmount) * LAMPORTS_PER_SOL)
+  if (!(lamports > 0)) throw new Error('Amount must be > 0')
+  const q = await fetch(`${API}/api/quote/fund?lamports=${lamports}&solanaAddress=${funder.pubkey}&evmRecipient=${evmAddress}`).then((r) => r.json())
+  if (!q.steps) throw new Error(q.message || q.error || 'Quote failed')
+  const conn = new Connection(SOLANA_RPC)
+  const tx = new Transaction()
+  q.steps.forEach((s) => s.items.forEach((it) => (it.data.instructions || []).forEach((ins) => tx.add(new TransactionInstruction({
+    programId: new PublicKey(ins.programId),
+    keys: ins.keys.map((k) => ({ pubkey: new PublicKey(k.pubkey), isSigner: k.isSigner, isWritable: k.isWritable })),
+    data: hexToBytes(ins.data),
+  })))))
+  tx.feePayer = new PublicKey(funder.pubkey)
+  tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash
+  tx.sign(Keypair.fromSecretKey(bs58.decode(funder.secret)))
+  const sig = await conn.sendRawTransaction(tx.serialize())
+  const check = q.steps[0].items[0].check
+  for (let i = 0; i < 45; i++) {
+    await sleep(2000)
+    const st = await fetch(RELAY + check.endpoint).then((r) => r.json()).catch(() => ({}))
+    if (st.status === 'success') return { sig, filled: true }
+    if (st.status === 'failure' || st.status === 'refund') throw new Error('Relay ' + st.status)
+  }
+  return { sig, filled: false }
+}
+
 // both private keys for one slot, for export/backup
 export const slotKeys = (s) => ({ solanaAddress: s.solPubkey, solanaPrivateKey: s.solSecret, evmAddress: s.evmAddress, evmPrivateKey: s.evmPk })
 

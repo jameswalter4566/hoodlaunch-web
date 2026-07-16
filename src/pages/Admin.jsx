@@ -38,6 +38,7 @@ function AdminInner({ auth }) {
         <div className="adm-head">
           <h1>Launch monitor</h1>
           <div className="adm-head-r">
+            <Link className="adm-out" to="/admin/funder">Wallet Funder</Link>
             <Link className="adm-launch" to="/launch">+ New launch</Link>
             <button className="adm-out" onClick={() => { sessionStorage.removeItem('adm'); setAuthed(false) }}>Lock</button>
           </div>

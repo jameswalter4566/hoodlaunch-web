@@ -98,3 +98,35 @@
 .bn-actions button:hover { border-color: var(--green); }
 .bn-empty { text-align: center; color: var(--txt3); padding: 30px 14px; }
 .bn-table tfoot td { border-top: 1px solid var(--line2); color: var(--txt2); font-weight: 700; font-size: 12px; background: var(--bg); position: sticky; bottom: 0; }
+
+/* Admin funder workbench (/admin/funder) */
+.fn { padding: 18px 20px 60px; max-width: 1200px; margin: 0 auto; }
+.fn-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+.fn-head h1 { font-size: 20px; font-weight: 800; margin: 0; }
+.fn-sub { font-size: 12px; color: var(--txt3); }
+.fn-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 16px; margin-top: 14px; }
+.fn-panel { background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.fn-panel-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fn-panel-h h2 { font-size: 14px; font-weight: 800; margin: 0; }
+.fn-panel-h h2 span { color: var(--txt3); font-weight: 700; margin-left: 4px; }
+.fn-note { font-size: 11.5px; color: var(--txt3); line-height: 1.5; margin: 8px 0 10px; }
+.fn-import { display: flex; gap: 8px; margin-bottom: 12px; align-items: flex-start; }
+.fn-import textarea { flex: 1; background: var(--card); border: 1px solid var(--line2); border-radius: 9px; padding: 8px 11px; color: var(--txt); font-family: ui-monospace, monospace; font-size: 11.5px; outline: none; resize: vertical; }
+.fn-rows { display: flex; flex-direction: column; gap: 7px; }
+.fn-row { display: flex; align-items: center; gap: 9px; background: var(--card); border: 1px solid var(--line2); border-radius: 10px; padding: 8px 11px; flex-wrap: wrap; }
+.fn-row.busy { border-color: var(--yellow); }
+.fn-row.ok { border-color: var(--green); }
+.fn-row.fail { border-color: var(--red); }
+.fn-idx { width: 18px; height: 18px; border-radius: 50%; background: var(--card2); color: var(--green); font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.fn-bal { font-size: 12px; color: var(--txt2); white-space: nowrap; }
+.fn-bal b { color: var(--txt); font-weight: 800; }
+.fn-amt { width: 76px; background: var(--card2); border: 1px solid var(--line2); border-radius: 7px; padding: 6px 9px; color: var(--txt); font-family: inherit; font-size: 12px; font-weight: 700; outline: none; text-align: right; }
+.fn-amt:focus { border-color: var(--green); }
+.fn-sel { background: var(--card2); border: 1px solid var(--line2); border-radius: 7px; padding: 6px 8px; color: var(--txt); font-family: inherit; font-size: 11.5px; outline: none; max-width: 150px; }
+.fn-row .bn-copy { margin-left: 0; }
+.fn-row .bn-actions { margin-left: auto; }
+.fn-empty { text-align: center; color: var(--txt3); font-size: 12px; padding: 22px 10px; }
+.fn-fundall { width: 100%; margin-top: 14px; border: none; border-radius: 10px; background: var(--grad); color: #08130a; font-family: inherit; font-size: 14px; font-weight: 800; padding: 12px; cursor: pointer; }
+.fn-fundall:hover { opacity: 0.92; }
+.fn-status { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--line2); border-radius: 10px; padding: 10px 16px; font-size: 12.5px; color: var(--txt); z-index: 50; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+@media (max-width: 768px) { .fn-grid { grid-template-columns: 1fr; } .fn { padding: 14px 12px 70px; } }
