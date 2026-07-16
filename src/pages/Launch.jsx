@@ -121,7 +121,7 @@ export default function Launch({ auth }) {
         catch (e) { L(ms(), `relay poll #${i} FETCH FAILED`, e); continue }
         L(ms(), `relay poll #${i} status=`, st.status, st)
         if (st.status === 'success') { dst = st.txHashes?.[0]; L('✅ Relay FILLED — dst tx', dst); break }
-        if (st.status === 'failure' || st.status === 'refund') { L('❌ Relay', st.status, st); throw new Error('Relay ' + st.status + ' — SOL refunded if deducted.') }
+        if (st.status === 'failure' || st.status === 'refund' || st.status === 'fallback') { L('❌ Relay', st.status, st); throw new Error('Relay ' + st.status + ' — the launch could not execute on Robinhood Chain; your SOL was refunded.') }
         setLx((l) => ({ ...l, pct: Math.min(80, 40 + i * 4), label: 'Launching on Robinhood Chain…' }))
       }
       if (!dst) { L('❌ Relay never reached success after 90s — still pending'); throw new Error('Still filling — check relay.link with your wallet.') }
