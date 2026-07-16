@@ -67,6 +67,14 @@ function Funder() {
   }
   const removeTarget = (id) => saveT(targets.filter((t) => t.id !== id))
   const setField = (id, k, v) => saveT(targets.map((t) => (t.id === id ? { ...t, [k]: v } : t)))
+  // one-click backup: every EVM wallet's private key (or address if fund-only), one per
+  // line in a .txt — directly re-importable via the Import box, and MetaMask-friendly.
+  const exportAllTargets = () => {
+    const lines = B.loadTargets().map((t) => t.pk || t.address).filter(Boolean)
+    if (!lines.length) return flash('No EVM wallets to export')
+    B.downloadText('bullish-evm-wallets-' + lines.length + '.txt', lines.join('\n') + '\n')
+    flash('Exported ' + lines.length + ' EVM wallet keys')
+  }
 
   // pair funder i -> target i (each EVM wallet gets its own dedicated funder = no shared source)
   const autoPair = () => saveT(targets.map((t, i) => ({ ...t, funderId: funders[i]?.id || '' })))
@@ -177,7 +185,8 @@ function Funder() {
         <section className="fn-panel">
           <div className="fn-panel-h">
             <h2>EVM wallets <span>{targets.length}</span></h2>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <button className="bn-tool" onClick={exportAllTargets} title="Download ALL EVM wallet keys as a .txt backup">⇩ Export all</button>
               <button className="bn-tool" onClick={autoPair} title="Assign funder #i to wallet #i (dedicated source each)">Auto-pair 1:1</button>
               <button className="bn-tool" onClick={addTarget}>+ New</button>
             </div>
