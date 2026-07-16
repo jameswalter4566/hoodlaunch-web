@@ -17,6 +17,10 @@ function Funder() {
   const [status, setStatus] = useState('')
   const [fImport, setFImport] = useState('')
   const [tImport, setTImport] = useState('')
+  const [masterId, setMasterId] = useState('')
+  const [perAmount, setPerAmount] = useState('0.05')
+  const [jitter, setJitter] = useState(true)
+  const [funding, setFunding] = useState(false)
 
   const saveF = (x) => { setFunders(x); B.saveFunders(x) }
   const saveT = (x) => { setTargets(x); B.saveTargets(x) }
@@ -76,6 +80,33 @@ function Funder() {
     flash('Done funding ' + list.length + ' wallets')
   }
 
+  // MASTER MODE: fund ONE Solana wallet from Coinbase, then bridge from it to EVERY
+  // EVM wallet. They stay unlinked on Robinhood Chain (Relay solver is the on-chain
+  // funder). Sent one at a time (a single wallet can't sign in parallel) with jittered
+  // amounts + random stagger so the batch isn't correlatable across chains.
+  async function fundAllFromMaster() {
+    const master = funders.find((f) => f.id === masterId) || funders[0]
+    if (!master) return flash('Create a master funder first (and fund it from Coinbase)')
+    const per = Number(perAmount)
+    if (!(per > 0)) return flash('Set SOL per wallet')
+    const list = B.loadTargets()
+    if (!list.length) return flash('Add EVM wallets first')
+    setFunding(true)
+    let ok = 0
+    for (let i = 0; i < list.length; i++) {
+      const t = list[i]
+      const amt = (jitter ? per * (0.85 + Math.random() * 0.3) : per).toFixed(4)
+      flash('Bridging ' + (i + 1) + '/' + list.length + ' → ' + B.short(t.address) + ' (' + amt + ' SOL)…')
+      setBusy((b) => ({ ...b, [t.id]: 'funding' }))
+      try { await B.fundEvm(master, t.address, amt); setBusy((b) => ({ ...b, [t.id]: 'ok' })); ok++ }
+      catch (e) { setBusy((b) => ({ ...b, [t.id]: 'fail' })); flash('⚠️ ' + B.short(t.address) + ': ' + (e.message || e)) }
+      await new Promise((r) => setTimeout(r, 400 + Math.random() * 900))
+    }
+    setFunding(false)
+    flash('✅ Funded ' + ok + '/' + list.length + ' wallets from master ' + B.short(master.pubkey))
+    refresh()
+  }
+
   return (
     <div className="main fn">
       <div className="fn-head">
@@ -83,6 +114,26 @@ function Funder() {
         <h1>Wallet Funder</h1>
         <span className="fn-sub">Bridge SOL → ETH so each EVM wallet lands funded by the Relay solver — unlinked on Robinhood Chain.</span>
         <button className="bn-ghost" onClick={refresh} style={{ marginLeft: 'auto' }}>↻ Refresh</button>
+      </div>
+
+      {/* MASTER: fund one wallet from Coinbase, bridge to all — the simple path */}
+      <div className="fn-master">
+        <div className="fn-master-l">
+          <span className="fn-master-tag">1-CLICK</span>
+          <span className="fn-master-txt">Fund <b>one</b> master from Coinbase, bridge to <b>every</b> EVM wallet. Stays unclustered on Robinhood Chain.</span>
+        </div>
+        <div className="fn-master-r">
+          <select value={masterId} onChange={(e) => setMasterId(e.target.value)} title="Master funder (fund this one from Coinbase)">
+            <option value="">master: #1 {funders[0] ? B.short(funders[0].pubkey) : '(create a funder)'}</option>
+            {funders.map((f, i) => <option key={f.id} value={f.id}>master: #{i + 1} {B.short(f.pubkey)}</option>)}
+          </select>
+          <input type="number" min="0" step="0.01" value={perAmount} onChange={(e) => setPerAmount(e.target.value)} title="SOL per wallet" />
+          <span className="fn-master-unit">SOL/wallet</span>
+          <label className="fn-master-jit"><input type="checkbox" checked={jitter} onChange={(e) => setJitter(e.target.checked)} /> jitter</label>
+          <button className="fn-fundall" style={{ width: 'auto', margin: 0 }} disabled={funding} onClick={fundAllFromMaster}>
+            {funding ? 'Bridging…' : '⇩ Fund all ' + targets.length + ' wallets'}
+          </button>
+        </div>
       </div>
 
       <div className="fn-grid">
