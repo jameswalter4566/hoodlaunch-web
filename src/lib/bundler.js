@@ -274,10 +274,12 @@ export function importFunder(input) {
 export function newEvmTarget() { const pk = generatePrivateKey(); const a = privateKeyToAccount(pk); return { id: a.address.toLowerCase(), address: a.address, pk, amount: '' } }
 // accept an EVM private key (0x + 64 hex -> we can also trade/export) OR a bare address (fund-only)
 export function importEvmTarget(input) {
-  const s = input.trim()
-  if (/^0x[0-9a-fA-F]{64}$/.test(s)) { const a = privateKeyToAccount(s); return { id: a.address.toLowerCase(), address: a.address, pk: s, amount: '' } }
-  if (/^0x[0-9a-fA-F]{40}$/.test(s)) { return { id: s.toLowerCase(), address: s, amount: '' } }
-  throw new Error('Not a valid EVM address or private key')
+  const s = input.trim().replace(/^["']|["']$/g, '') // tolerate stray quotes
+  const pk = s.match(/^(?:0x)?([0-9a-fA-F]{64})$/) // private key, with or WITHOUT 0x (MetaMask omits it)
+  if (pk) { const key = '0x' + pk[1]; const a = privateKeyToAccount(key); return { id: a.address.toLowerCase(), address: a.address, pk: key, amount: '' } }
+  const addr = s.match(/^(?:0x)?([0-9a-fA-F]{40})$/) // bare address, with or without 0x
+  if (addr) { const address = '0x' + addr[1]; return { id: address.toLowerCase(), address, amount: '' } }
+  throw new Error('bad')
 }
 
 // bridge SOL -> Robinhood Chain ETH from a funder to an EVM address (signed by the funder)

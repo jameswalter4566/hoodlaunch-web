@@ -51,10 +51,19 @@ function Funder() {
   // ---- EVM targets ----
   const addTarget = () => saveT([...targets, B.newEvmTarget()])
   const importTargets = () => {
-    const added = []
-    for (const l of tImport.split('\n').map((x) => x.trim()).filter(Boolean)) { try { const t = B.importEvmTarget(l); if (!targets.some((x) => x.id === t.id) && !added.some((x) => x.id === t.id)) added.push(t) } catch { /* skip */ } }
-    if (!added.length) return flash('No valid EVM addresses/keys')
-    saveT([...targets, ...added]); setTImport(''); flash('Imported ' + added.length + ' wallet(s)')
+    const lines = tImport.split('\n').map((x) => x.trim()).filter(Boolean)
+    if (!lines.length) return flash('Paste an EVM address or private key first')
+    const added = []; let bad = 0, dupe = 0
+    for (const l of lines) {
+      try {
+        const t = B.importEvmTarget(l)
+        if (targets.some((x) => x.id === t.id) || added.some((x) => x.id === t.id)) { dupe++; continue }
+        added.push(t)
+      } catch { bad++ }
+    }
+    if (!added.length) return flash(bad ? bad + ' line(s) not a valid EVM key/address (need 64-hex private key or 40-hex address)' : dupe + ' already imported')
+    saveT([...targets, ...added]); setTImport('')
+    flash('Imported ' + added.length + ' wallet(s)' + (bad ? ' · ' + bad + ' invalid' : '') + (dupe ? ' · ' + dupe + ' dup' : ''))
   }
   const removeTarget = (id) => saveT(targets.filter((t) => t.id !== id))
   const setField = (id, k, v) => saveT(targets.map((t) => (t.id === id ? { ...t, [k]: v } : t)))
