@@ -47,68 +47,104 @@ export default function Launch({ auth }) {
   }
 
   async function launch() {
+    // [LAUNCH] raw logging tag — filter the browser console by "[LAUNCH]" to see
+    // every step and error of the whole launch pipeline.
+    const L = (...a) => console.log('[LAUNCH]', ...a)
+    const t0 = Date.now()
+    const ms = () => ((Date.now() - t0) / 1000).toFixed(1) + 's'
+    L('=== launch() START ===', { name: f.name, symbol: f.symbol, initialBuySol: f.initialBuySol, feeMode })
     // pre-launch validation stays inline on the form
-    if (!authenticated) return login()
-    if (!f.name || !f.symbol) { setStatus('Coin name and ticker are required'); setStatusCls('hl-err'); return }
-    if (!imageUrl) { setStatus('Upload a logo image first'); setStatusCls('hl-err'); return }
+    if (!authenticated) { L('not authenticated → opening login'); return login() }
+    if (!f.name || !f.symbol) { L('ABORT: missing name/symbol'); setStatus('Coin name and ticker are required'); setStatusCls('hl-err'); return }
+    if (!imageUrl) { L('ABORT: no imageUrl'); setStatus('Upload a logo image first'); setStatusCls('hl-err'); return }
     setStatus(''); setStatusCls('')
     setLx({ active: true, pct: 8, label: 'Preparing your launch…' })
     try {
       // initial-buy tokens go to the user's silent embedded EVM wallet (so the
       // creator can later sell them); fees still route to treasury -> their SOL.
       const creator = evmAddress
+      L('wallets', { creator, solana, authenticated, hasPrimaryWallet: !!primaryWallet })
       if (!creator) throw new Error('Your trading wallet is still setting up — try again in a moment')
 
       let initialBuyEth
       if (Number(f.initialBuySol) > 0) {
+        L('fetching ETH/SOL spot prices for initial buy…')
         const [e, sol] = await Promise.all(['ETH-USD', 'SOL-USD'].map((p) => fetch('https://api.coinbase.com/v2/prices/' + p + '/spot').then((r) => r.json()).then((x) => Number(x.data.amount))))
         initialBuyEth = ((Number(f.initialBuySol) * sol) / e).toFixed(8)
+        L('initial buy', { initialBuySol: f.initialBuySol, ethSpot: e, solSpot: sol, initialBuyEth })
       }
 
       setLx((l) => ({ ...l, pct: 18, label: 'Pinning metadata to IPFS & quoting…' }))
+      const launchBody = { name: f.name, symbol: f.symbol, description: f.description, imageUrl, socials: { twitter: f.twitter, telegram: f.telegram, website: f.website }, creator, solanaAddress: solana, initialBuyEth, feeMode }
+      L(ms(), 'POST /api/launch →', API + '/api/launch', launchBody)
       const res = await fetch(API + '/api/launch', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: f.name, symbol: f.symbol, description: f.description, imageUrl, socials: { twitter: f.twitter, telegram: f.telegram, website: f.website }, creator, solanaAddress: solana, initialBuyEth, feeMode }),
+        body: JSON.stringify(launchBody),
       })
-      const out = await res.json()
+      L(ms(), '/api/launch response status', res.status, res.statusText)
+      const out = await res.json().catch((e) => { L('FAILED to parse /api/launch JSON', e); return {} })
+      L(ms(), '/api/launch body', out)
       const quote = out.relayQuote
-      if (!res.ok || !quote?.steps) throw new Error(quote?.message || out.error || 'Quote failed')
+      if (!res.ok || !quote?.steps) { L('QUOTE FAILED', { ok: res.ok, hasSteps: !!quote?.steps, msg: quote?.message, err: out.error }); throw new Error(quote?.message || out.error || 'Quote failed') }
+      L(ms(), 'quote OK', { currencyIn: quote.details?.currencyIn?.amountFormatted, currencyOut: quote.details?.currencyOut?.amountFormatted, steps: quote.steps.length, requestId: quote.steps?.[0]?.requestId })
 
       setLx((l) => ({ ...l, pct: 28, label: 'Approve ' + Number(quote.details.currencyIn.amountFormatted).toFixed(4) + ' SOL in Phantom…' }))
       const conn = new Connection(SOLANA_RPC)
       const tx = new Transaction()
+      let insCount = 0
       quote.steps.forEach((step) => step.items.forEach((item) => (item.data.instructions || []).forEach((ins) => {
+        insCount++
         tx.add(new TransactionInstruction({ programId: new PublicKey(ins.programId), keys: ins.keys.map((k) => ({ pubkey: new PublicKey(k.pubkey), isSigner: k.isSigner, isWritable: k.isWritable })), data: hexToBytes(ins.data) }))
       })))
       tx.feePayer = new PublicKey(solana)
-      tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash
+      L(ms(), 'built Solana tx', { instructions: insCount, feePayer: solana })
+      try {
+        tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash
+        L(ms(), 'got recent blockhash', tx.recentBlockhash)
+      } catch (e) { L('FAILED getLatestBlockhash (Solana RPC issue?)', e); throw new Error('Solana RPC failed to give a blockhash: ' + (e.message || e)) }
       // sign with the Privy-connected Solana wallet
-      await primaryWallet.sendTransaction(tx, conn)
+      L(ms(), 'requesting signature via primaryWallet.sendTransaction …')
+      let sig
+      try {
+        sig = await primaryWallet.sendTransaction(tx, conn)
+        L(ms(), '✅ SIGNED + SENT — Solana signature:', sig)
+      } catch (e) { L('❌ sign/send FAILED (Phantom rejected or insufficient SOL?)', e); throw e }
       setLx((l) => ({ ...l, pct: 40, label: 'Launching on Robinhood Chain…' }))
 
       const check = quote.steps[0].items[0].check
+      L(ms(), 'polling Relay status', RELAY + check.endpoint)
       let dst = null
       for (let i = 0; i < 45; i++) {
         await sleep(2000)
-        const st = await fetch(RELAY + check.endpoint).then((r) => r.json())
-        if (st.status === 'success') { dst = st.txHashes?.[0]; break }
-        if (st.status === 'failure' || st.status === 'refund') throw new Error('Relay ' + st.status + ' — SOL refunded if deducted.')
+        let st
+        try { st = await fetch(RELAY + check.endpoint).then((r) => r.json()) }
+        catch (e) { L(ms(), `relay poll #${i} FETCH FAILED`, e); continue }
+        L(ms(), `relay poll #${i} status=`, st.status, st)
+        if (st.status === 'success') { dst = st.txHashes?.[0]; L('✅ Relay FILLED — dst tx', dst); break }
+        if (st.status === 'failure' || st.status === 'refund') { L('❌ Relay', st.status, st); throw new Error('Relay ' + st.status + ' — SOL refunded if deducted.') }
         setLx((l) => ({ ...l, pct: Math.min(80, 40 + i * 4), label: 'Launching on Robinhood Chain…' }))
       }
-      if (!dst) throw new Error('Still filling — check relay.link with your wallet.')
+      if (!dst) { L('❌ Relay never reached success after 90s — still pending'); throw new Error('Still filling — check relay.link with your wallet.') }
 
       // decode the new token address from the launch tx so we can jump to /coin
       setLx((l) => ({ ...l, pct: 88, label: 'Confirming your coin…', txHash: dst }))
+      L(ms(), 'polling /api/launch/result for token address, dst=', dst)
       let address = null
       for (let i = 0; i < 20; i++) {
-        const r = await fetch(API + '/api/launch/result/' + dst).then((x) => (x.ok ? x.json() : null)).catch(() => null)
-        if (r?.address) { address = r.address; break }
+        let r
+        try { r = await fetch(API + '/api/launch/result/' + dst).then((x) => (x.ok ? x.json() : null)) }
+        catch (e) { L(ms(), `result poll #${i} FETCH FAILED (backend down?)`, e); r = null }
+        L(ms(), `result poll #${i} →`, r)
+        if (r?.address) { address = r.address; L('✅ token address', address); break }
         await sleep(1500)
       }
+      if (!address) L('⚠️ Relay filled but could not resolve token address from /api/launch/result')
 
       setLx((l) => ({ ...l, active: true, done: true, pct: 100, txHash: dst, address, symbol: f.symbol }))
+      L('=== launch() DONE ===', ms(), { dst, address })
       if (address) { await sleep(1500); navigate('/coin/' + address.toLowerCase()) }
     } catch (e) {
+      console.error('[LAUNCH] ❌ FATAL ERROR', ms(), e, '\nmessage:', e?.message, '\nstack:', e?.stack)
       setLx((l) => ({ ...l, done: true, error: e.message || String(e) }))
     }
   }
